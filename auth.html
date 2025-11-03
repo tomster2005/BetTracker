@@ -335,7 +335,8 @@
                 return await sendPasswordResetEmail(auth, email);
             },
             getDoc: getDoc,
-            doc: doc
+            doc: doc,
+            setDoc: setDoc
         };
     </script>
     
@@ -414,7 +415,7 @@
             try {
                 const userCredential = await window.firebaseAuth.register(email, password);
                 // Create user document in Firestore
-                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                await window.firebaseAuth.setDoc(window.firebaseAuth.doc(db, 'users', userCredential.user.uid), {
                     username: username,
                     email: email,
                     createdAt: new Date(),

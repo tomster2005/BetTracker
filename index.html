@@ -1467,7 +1467,10 @@
             
             // Add event listeners
             document.getElementById('betForm').addEventListener('submit', addBet);
-            document.getElementById('addBetModalForm').addEventListener('submit', addBetFromModal);
+            const modalForm = document.getElementById('addBetModalForm');
+            if (modalForm) {
+                modalForm.addEventListener('submit', addBetFromModal);
+            }
             document.getElementById('editBetForm').addEventListener('submit', updateBet);
             document.getElementById('cashoutForm').addEventListener('submit', processCashout);
             document.getElementById('withdrawForm').addEventListener('submit', processWithdraw);
@@ -2505,7 +2508,10 @@
         // Add bet modal functions
         function openAddBetModal() {
             updateBookmakerSelects();
-            document.getElementById('addBetModalDate').valueAsDate = new Date();
+            const dateInput = document.getElementById('addBetModalDate');
+            if (dateInput) {
+                dateInput.valueAsDate = new Date();
+            }
             document.getElementById('addBetModal').style.display = 'block';
         }
         
