@@ -1790,6 +1790,7 @@
         // Add bet from modal
         async function addBetFromModal(e) {
             e.preventDefault();
+            console.log('Add bet modal form submitted');
             
             let returnAmount = parseFloat(document.getElementById('addBetModalReturn').value);
             let stake = parseFloat(document.getElementById('addBetModalStake').value);
@@ -2507,6 +2508,7 @@
 
         // Add bet modal functions
         function openAddBetModal() {
+            console.log('Opening add bet modal');
             updateBookmakerSelects();
             const dateInput = document.getElementById('addBetModalDate');
             if (dateInput) {
