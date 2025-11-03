@@ -1,15 +1,17 @@
 // Configuration file for Bet Tracker
-// In production, these should be loaded from environment variables
+// In production, these should be loaded from environment variables via build process
 
+// For development, you can set these directly here (NOT recommended for production)
+// In production, use a build process to inject environment variables
 const CONFIG = {
-    // Firebase configuration
+    // Firebase configuration - DO NOT commit real credentials
     firebase: {
-        apiKey: process.env.FIREBASE_API_KEY || "AIzaSyAxtgFIJKNbBoXKZHWNSm5i2qwvwCwBNcA",
-        authDomain: process.env.FIREBASE_AUTH_DOMAIN || "stake-analytic.firebaseapp.com",
-        projectId: process.env.FIREBASE_PROJECT_ID || "stake-analytic",
-        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "stake-analytic.firebasestorage.app",
-        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "939988481943",
-        appId: process.env.FIREBASE_APP_ID || "1:939988481943:web:b5a37162a4221fd343f6d2"
+        apiKey: "your-api-key-here",
+        authDomain: "your-project.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project.firebasestorage.app",
+        messagingSenderId: "your-sender-id",
+        appId: "your-app-id"
     },
     
     // Application settings
@@ -40,12 +42,26 @@ function validateConfig() {
     
     for (const key of required) {
         const value = key.split('.').reduce((obj, k) => obj?.[k], CONFIG);
-        if (!value) {
-            console.error(`Missing required configuration: ${key}`);
+        if (!value || value.includes('your-') || value.includes('here')) {
+            console.error(`Missing or placeholder configuration: ${key}`);
+            console.error('Please set up your environment variables or update config.js with real values');
             return false;
         }
     }
     return true;
+}
+
+// Load environment variables in development (for local testing only)
+if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    // Development override - replace with your actual values for local testing
+    CONFIG.firebase = {
+        apiKey: "AIzaSyAxtgFIJKNbBoXKZHWNSm5i2qwvwCwBNcA",
+        authDomain: "stake-analytic.firebaseapp.com",
+        projectId: "stake-analytic",
+        storageBucket: "stake-analytic.firebasestorage.app",
+        messagingSenderId: "939988481943",
+        appId: "1:939988481943:web:b5a37162a4221fd343f6d2"
+    };
 }
 
 // Export configuration

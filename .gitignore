@@ -3,6 +3,9 @@
 .env.local
 .env.production
 
+# Firebase configuration (contains sensitive data)
+firebase-config.js
+
 # Node modules
 node_modules/
 
