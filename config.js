@@ -51,18 +51,7 @@ function validateConfig() {
     return true;
 }
 
-// Load environment variables in development (for local testing only)
-if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    // Development override - replace with your actual values for local testing
-    CONFIG.firebase = {
-        apiKey: "AIzaSyAxtgFIJKNbBoXKZHWNSm5i2qwvwCwBNcA",
-        authDomain: "stake-analytic.firebaseapp.com",
-        projectId: "stake-analytic",
-        storageBucket: "stake-analytic.firebasestorage.app",
-        messagingSenderId: "939988481943",
-        appId: "1:939988481943:web:b5a37162a4221fd343f6d2"
-    };
-}
+// This file is not used anymore - credentials are in firebase-config.js
 
 // Export configuration
 if (typeof module !== 'undefined' && module.exports) {
