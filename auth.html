@@ -319,6 +319,11 @@
             appId: "1:939988481943:web:b5a37162a4221fd343f6d2"
         };
         
+        // Add GitHub Pages domain to Firebase auth
+        if (window.location.hostname.includes('github.io')) {
+            firebaseConfig.authDomain = window.location.hostname;
+        }
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
