@@ -567,12 +567,50 @@
             box-shadow: var(--shadow-lg);
         }
         
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 39;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+        
         .tab-navigation {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
             padding: 6rem 1.5rem 2rem 1.5rem;
             height: 100%;
+        }
+        
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
         }
         
         .tab-btn {
@@ -588,6 +626,16 @@
             font-size: 0.875rem;
             text-align: left;
             margin-bottom: 0.5rem;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .tab-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
         }
         
         .tab-btn.active {
@@ -672,21 +720,33 @@
             outline-offset: 2px;
         }
         
-        /* Better mobile responsiveness */
+        /* Mobile-first responsive design */
         @media (max-width: 768px) {
             .container {
-                padding: 1rem;
+                padding: 0.5rem;
             }
             
             .header {
-                padding: 1rem;
-                flex-direction: column;
-                gap: 1rem;
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1.25rem;
+            }
+            
+            .header-toggle {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
             }
             
             .sidebar {
+                width: 100%;
+                height: 100vh;
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                z-index: 1000;
             }
             
             .sidebar.open {
@@ -695,71 +755,225 @@
             
             .content-area {
                 margin-left: 0;
+                padding: 0;
+            }
+            
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .bankroll-selector .card {
+                padding: 1rem;
+            }
+            
+            .bankroll-selector > div {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: stretch;
             }
             
             .filters {
                 flex-direction: column;
+                gap: 0.5rem;
             }
             
             .grid, .grid-2 {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
             
             .card {
-                padding: 1.5rem;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.1rem;
             }
             
             .modal-content {
                 width: 95%;
-                padding: 1.5rem;
+                padding: 1rem;
+                max-height: 85vh;
             }
             
             .stat-value {
-                font-size: 2rem;
+                font-size: 1.75rem;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table {
+                min-width: 600px;
+            }
+            
+            .table th, .table td {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+            
+            .form-input, .form-select {
+                padding: 0.75rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+                min-height: 44px; /* Touch target size */
+            }
+            
+            .btn-sm {
+                padding: 0.5rem 0.75rem;
+                min-height: 36px;
+            }
+            
+            .chart-container {
+                height: 250px;
+                padding: 0.5rem;
+            }
+            
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .pagination-controls {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.5rem;
+            }
+            
+            .logo {
+                font-size: 1rem;
+            }
+            
+            .card {
+                padding: 0.75rem;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            
+            .modal-content {
+                width: 98%;
+                padding: 0.75rem;
+            }
+            
+            .form-input, .form-select {
+                padding: 0.5rem;
+            }
+        }
+        
+        /* Touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover, .card:hover, .stat-item:hover {
+                transform: none;
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+            }
+        }
+        
+        /* Hide desktop-only elements on mobile */
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none;
+            }
+        }
+        
+        /* Improve form layouts on mobile */
+        @media (max-width: 768px) {
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .modal form > div[style*="grid"] {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+        }
+        
+        /* Better table scrolling on mobile */
+        .table-container {
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .table-container::after {
+                content: 'Swipe to see more →';
+                position: absolute;
+                bottom: 0.5rem;
+                right: 0.5rem;
+                background: var(--bg-card);
+                color: var(--text-secondary);
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                pointer-events: none;
+                opacity: 0.7;
             }
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <div class="logo">Stake Analytics</div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <div id="headerStats" style="display: flex; align-items: center; margin-right: 1rem;"></div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+                ☰
+            </button>
+            <div class="logo">Stake Analytics</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <div id="headerStats" style="display: flex; align-items: center; font-size: 0.75rem;"></div>
             <button class="btn btn-primary btn-sm" onclick="openAddBetModal()">
                 <span style="font-size: 1rem;">+</span>
-                Add Bet
+                <span class="desktop-only">Add Bet</span>
             </button>
             <button class="header-toggle" onclick="toggleUnitsMode()" id="unitsToggle">
                 <span id="units-icon">£</span>
-                <span id="units-text">Switch to Units</span>
+                <span id="units-text" class="desktop-only">Switch to Units</span>
             </button>
             <div id="user-section">
                 <button class="btn btn-primary btn-sm" onclick="window.location.href='auth.html'" id="login-btn">Login</button>
-                <div id="user-info" style="display: none; align-items: center; gap: 1rem;">
-                    <span id="username" style="color: var(--text-primary); font-weight: 500;"></span>
+                <div id="user-info" style="display: none; align-items: center; gap: 0.5rem;">
+                    <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
                     <button class="btn btn-sm" onclick="logout()" style="background: var(--bg-elevated); color: var(--text-secondary);">Logout</button>
                 </div>
             </div>
         </div>
     </header>
+    
+    <div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
 
     <div class="container">
         <div class="main-layout">
             <!-- Sidebar Navigation -->
-            <div class="sidebar">
+            <div class="sidebar" id="sidebar">
                 <div class="tab-navigation">
-                    <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-                    <button class="tab-btn" onclick="switchTab('bankroll')">Bankroll</button>
-                    <button class="tab-btn" onclick="switchTab('analytics')">Analytics</button>
-                    <button class="tab-btn" onclick="switchTab('strategies')">Strategies</button>
-                    <button class="tab-btn" onclick="switchTab('reports')">Reports</button>
-                    <button class="tab-btn" onclick="switchTab('quickactions')">Pending Bets</button>
-                    <button class="tab-btn" onclick="switchTab('unitcalc')">Unit Calculator</button>
-                    <button class="tab-btn" onclick="manageFreeBets()">Free Bets</button>
+                    <button class="tab-btn active" onclick="switchTab('dashboard'); closeMobileMenu();">📊 Dashboard</button>
+                    <button class="tab-btn" onclick="switchTab('bankroll'); closeMobileMenu();">💰 Bankroll</button>
+                    <button class="tab-btn" onclick="switchTab('analytics'); closeMobileMenu();">📈 Analytics</button>
+                    <button class="tab-btn" onclick="switchTab('strategies'); closeMobileMenu();">🎯 Strategies</button>
+                    <button class="tab-btn" onclick="switchTab('reports'); closeMobileMenu();">📋 Reports</button>
+                    <button class="tab-btn" onclick="switchTab('quickactions'); closeMobileMenu();">⏳ Pending Bets</button>
+                    <button class="tab-btn" onclick="switchTab('unitcalc'); closeMobileMenu();">🧮 Unit Calculator</button>
+                    <button class="tab-btn" onclick="manageFreeBets(); closeMobileMenu();">🎁 Free Bets</button>
                 </div>
             </div>
 
@@ -767,15 +981,17 @@
                 <!-- Bankroll Selector -->
                 <div class="bankroll-selector">
                     <div class="card">
-                        <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; padding: 0.5rem 0;">
-                            <select id="bankrollSelect" class="form-select" style="width: auto;">
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; padding: 0.5rem 0;">
+                            <select id="bankrollSelect" class="form-select">
                                 <option value="default">Default Bankroll</option>
                             </select>
-                            <button class="btn btn-primary btn-sm" onclick="createBankroll()">+ New Bankroll</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteBankroll()">Delete Current</button>
-                            <button class="btn btn-success btn-sm" onclick="manageBookmakers()">Add Bookmaker</button>
-                            <button class="btn btn-warning btn-sm" onclick="openWithdrawModal()">Withdraw</button>
-                            <button class="btn btn-primary btn-sm" onclick="openMoveFundsModal()">Move Funds</button>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
+                                <button class="btn btn-primary btn-sm" onclick="createBankroll()">+ New</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteBankroll()">Delete</button>
+                                <button class="btn btn-success btn-sm" onclick="manageBookmakers()">+ Bookie</button>
+                                <button class="btn btn-warning btn-sm" onclick="openWithdrawModal()">Withdraw</button>
+                                <button class="btn btn-primary btn-sm" onclick="openMoveFundsModal()">Move £</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2528,7 +2744,11 @@
             document.getElementById(tabName + '-tab').classList.add('active');
             
             // Add active class to clicked button
-            event.target.classList.add('active');
+            const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
+                btn.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
+                btn.onclick.toString().includes(tabName)
+            );
+            if (clickedBtn) clickedBtn.classList.add('active');
             
             // Update bookmaker selects when switching to add bet tab
             if (tabName === 'addbet') {
@@ -3756,6 +3976,36 @@
             showNotification(`Moved £${amount.toFixed(2)} from ${fromBookmaker} to ${toBookmaker}`, 'success');
         }
 
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            const isOpen = sidebar.classList.contains('open');
+            
+            if (isOpen) {
+                closeMobileMenu();
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+        
         // Close modal when clicking outside
         window.onclick = function(event) {
             const editModal = document.getElementById('editModal');

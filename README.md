@@ -16,7 +16,8 @@ export const CONFIG = {
     appId: "your-app-id"
 };
 ```
-3. Open `index.html` in a web server
+3. Copy `firestore.rules` to Firebase Console → Firestore → Rules
+4. Open `index.html` in a web server
 
 ## Features
 - Betting analytics and tracking

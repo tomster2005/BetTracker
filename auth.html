@@ -310,8 +310,15 @@
         import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         
         // Import configuration from external file
-        const { CONFIG } = await import('./firebase-config.js');
-        const firebaseConfig = CONFIG;
+        let firebaseConfig;
+        try {
+            const { CONFIG } = await import('./firebase-config.js');
+            firebaseConfig = CONFIG;
+        } catch (error) {
+            console.error('Failed to load Firebase configuration:', error);
+            alert('Firebase configuration not found. Please create firebase-config.js with your credentials.');
+            throw error;
+        }
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);

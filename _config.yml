@@ -1,2 +1,5 @@
+# Jekyll Configuration for Stake Analytics
+# This file configures Jekyll plugins for GitHub Pages
+
 plugins:
   - jekyll-redirect-from
