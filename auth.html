@@ -384,6 +384,16 @@
             document.getElementById('success-message').style.display = 'none';
         }
 
+        // Check for re-authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            const reauthEmail = sessionStorage.getItem('reauth_email');
+            if (reauthEmail) {
+                document.getElementById('login-email').value = reauthEmail;
+                sessionStorage.removeItem('reauth_email');
+                showError('Please re-enter your password to continue');
+            }
+        });
+        
         // Form handlers with Firebase integration
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -394,7 +404,10 @@
                 const userCredential = await window.firebaseAuth.login(email, password);
                 const username = userCredential.user.email.split('@')[0];
                 localStorage.setItem('currentUser', JSON.stringify({ email: userCredential.user.email, username: username, uid: userCredential.user.uid }));
-                window.location.href = 'index.html';
+                showSuccess('Login successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
             } catch (error) {
                 showError(error.message);
             }

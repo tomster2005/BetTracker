@@ -967,6 +967,7 @@
                 <div id="user-info" style="display: none; align-items: center; gap: 0.5rem;">
                     <button class="btn btn-sm" onclick="manualSync()" style="background: var(--success); color: white;" title="Sync data with cloud">↻</button>
                     <button class="btn btn-sm" onclick="debugDataState()" style="background: var(--warning); color: white;" title="Debug data state">?</button>
+                    <button class="btn btn-sm" onclick="reAuthenticate()" style="background: var(--primary); color: white;" title="Re-authenticate">🔑</button>
                     <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
                     <button class="btn btn-sm" onclick="logout()" style="background: var(--bg-elevated); color: var(--text-secondary);">Logout</button>
                 </div>
@@ -1712,6 +1713,7 @@
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             console.log('=== DEBUG DATA STATE ===');
             console.log('Current User:', user);
+            console.log('Firebase Auth User:', window.firebaseAuth?.currentUser?.uid || 'None');
             console.log('Current Bankroll:', currentBankroll);
             console.log('Bankrolls:', bankrolls);
             console.log('Current Bets:', bets.length, 'bets');
@@ -1719,7 +1721,24 @@
             console.log('========================');
             
             // Show in notification too
-            showNotification(`Debug: ${bets.length} bets, bankroll: ${currentBankroll}, user: ${user.username || 'none'}`, 'success');
+            const authStatus = window.firebaseAuth?.currentUser ? 'authenticated' : 'not authenticated';
+            showNotification(`Debug: ${bets.length} bets, ${authStatus}, user: ${user.username || 'none'}`, 'success');
+        }
+        
+        // Function to re-authenticate user
+        async function reAuthenticate() {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (!user.email) {
+                showNotification('No user credentials found. Please log in again.', 'error');
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            showNotification('Re-authenticating...', 'success');
+            
+            // Redirect to auth page with current email
+            sessionStorage.setItem('reauth_email', user.email);
+            window.location.href = 'auth.html';
         }
         
         // Make debug function available globally
@@ -1843,6 +1862,7 @@
             try {
                 const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
                 const { getFirestore, doc, setDoc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
                 
                 // Firebase configuration - injected by GitHub Actions
                 const firebaseConfig = {
@@ -1856,10 +1876,35 @@
                 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
+                const auth = getAuth(app);
+                
                 window.firestoreUtils = { doc, setDoc, getDoc, updateDoc };
+                window.firebaseAuth = auth;
+                
+                // Listen for auth state changes
+                onAuthStateChanged(auth, (user) => {
+                    console.log('Auth state changed:', user ? user.uid : 'No user');
+                    if (user) {
+                        // User is signed in, update localStorage
+                        const userData = {
+                            email: user.email,
+                            username: user.email.split('@')[0],
+                            uid: user.uid
+                        };
+                        localStorage.setItem('currentUser', JSON.stringify(userData));
+                        showUserInfo(userData);
+                    } else {
+                        // User is signed out
+                        localStorage.removeItem('currentUser');
+                        document.getElementById('login-btn').style.display = 'block';
+                        document.getElementById('user-info').style.display = 'none';
+                    }
+                });
+                
                 console.log('Firestore initialized successfully');
             } catch (error) {
                 console.error('Failed to initialize Firestore:', error);
+                showNotification('Failed to connect to cloud storage', 'error');
             }
         }
         
@@ -1867,6 +1912,13 @@
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (!user.uid || !db) {
                 console.log('No user or database, saving to localStorage');
+                saveData();
+                return;
+            }
+            
+            // Check if user is actually authenticated with Firebase
+            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                console.log('User not authenticated with Firebase, saving locally only');
                 saveData();
                 return;
             }
@@ -1889,7 +1941,14 @@
                 saveData();
             } catch (error) {
                 console.error('Error saving to Firestore:', error);
-                showNotification('Failed to sync data to cloud. Data saved locally.', 'error');
+                console.error('Error details:', error.code, error.message);
+                
+                if (error.code === 'permission-denied') {
+                    showNotification('Permission denied. Please log in again.', 'error');
+                } else {
+                    showNotification(`Failed to sync to cloud: ${error.message}`, 'error');
+                }
+                
                 saveData(); // Fallback to localStorage
             }
         }
@@ -1898,6 +1957,14 @@
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (!user.uid || !db) {
                 console.log('No user or database, loading from localStorage');
+                loadData();
+                return;
+            }
+            
+            // Check if user is actually authenticated with Firebase
+            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                console.log('User not authenticated with Firebase, attempting to load local data');
+                showNotification('Not authenticated with cloud. Using local data.', 'error');
                 loadData();
                 return;
             }
@@ -1937,7 +2004,17 @@
                 }
             } catch (error) {
                 console.error('Error loading from Firestore:', error);
-                showNotification('Failed to load cloud data. Using local data.', 'error');
+                console.error('Error details:', error.code, error.message);
+                
+                if (error.code === 'permission-denied') {
+                    showNotification('Permission denied. Please log in again.', 'error');
+                    logout();
+                } else if (error.code === 'unavailable') {
+                    showNotification('Cloud storage unavailable. Using local data.', 'error');
+                } else {
+                    showNotification(`Failed to load cloud data: ${error.message}`, 'error');
+                }
+                
                 loadData(); // Fallback to localStorage
             }
         }
