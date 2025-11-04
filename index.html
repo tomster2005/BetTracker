@@ -1749,9 +1749,15 @@
                 const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
                 const { getFirestore, doc, setDoc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
                 
-                // Import configuration from external file
-                const { CONFIG } = await import('./firebase-config.js');
-                const firebaseConfig = CONFIG;
+                // Firebase configuration - injected by GitHub Actions
+                const firebaseConfig = {
+                    apiKey: "your-api-key-here",
+                    authDomain: "your-project.firebaseapp.com",
+                    projectId: "your-project-id",
+                    storageBucket: "your-project.firebasestorage.app",
+                    messagingSenderId: "your-sender-id",
+                    appId: "your-app-id"
+                };
                 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
