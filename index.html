@@ -1975,7 +1975,7 @@
             document.getElementById('freeBetsModal').style.display = 'none';
         }
 
-        async function editBookmaker(name) {
+        async function editStartingBalance(name) {
             const current = bankrolls[currentBankroll].bookmakers[name];
             const newAmount = parseFloat(prompt(`Edit starting balance for ${name} (£):`, current));
             if (!isNaN(newAmount) && newAmount >= 0) {
@@ -1983,7 +1983,35 @@
                 await saveUserData();
                 updateStats();
                 updateCharts();
+                showNotification(`${name} starting balance updated to ${formatCurrency(newAmount)}`, 'success');
             }
+        }
+        
+        async function editCurrentBalance(name) {
+            // Calculate current balance
+            const startingBalance = bankrolls[currentBankroll].bookmakers[name];
+            const bookieProfit = bets.filter(bet => bet.bookmaker === name)
+                                    .reduce((sum, bet) => sum + bet.profit, 0);
+            const pendingStakes = bets.filter(bet => bet.bookmaker === name && bet.result === 'Pending')
+                                     .reduce((sum, bet) => sum + bet.stake, 0);
+            const withdrawals = (bankrolls[currentBankroll].withdrawals || []).filter(w => w.bookmaker === name)
+                               .reduce((sum, w) => sum + w.amount, 0);
+            const currentBalance = startingBalance + bookieProfit - pendingStakes - withdrawals;
+            
+            const newBalance = parseFloat(prompt(`Edit current balance for ${name} (£):\nCurrent: ${formatCurrency(currentBalance)}`, currentBalance));
+            if (!isNaN(newBalance)) {
+                // Calculate the difference and adjust starting balance to achieve target current balance
+                const targetStarting = newBalance - bookieProfit + pendingStakes + withdrawals;
+                bankrolls[currentBankroll].bookmakers[name] = targetStarting;
+                await saveUserData();
+                updateStats();
+                updateCharts();
+                showNotification(`${name} balance adjusted to ${formatCurrency(newBalance)}`, 'success');
+            }
+        }
+        
+        async function editBookmaker(name) {
+            editStartingBalance(name);
         }
         
         async function deleteBookmaker(name) {
@@ -2521,9 +2549,12 @@
                     div.innerHTML = `
                         <div>
                             <div style="font-weight: 600;">${bookie}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${freeBets > 0 ? `+ ${formatCurrency(freeBets)} FB` : ''}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                Start: <span onclick="editStartingBalance('${bookie}')" style="cursor: pointer; text-decoration: underline; color: var(--primary);">${formatCurrency(bookmakers[bookie])}</span>
+                                ${freeBets > 0 ? ` | FB: ${formatCurrency(freeBets)}` : ''}
+                            </div>
                         </div>
-                        <div style="font-weight: 700; color: ${balance >= bookmakers[bookie] ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(balance)}</div>
+                        <div onclick="editCurrentBalance('${bookie}')" style="font-weight: 700; color: ${balance >= bookmakers[bookie] ? 'var(--success)' : 'var(--danger)'}; cursor: pointer; text-decoration: underline;">${formatCurrency(balance)}</div>
                     `;
                     bookmakersDiv.appendChild(div);
                 });
