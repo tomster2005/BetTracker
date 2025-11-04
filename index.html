@@ -1112,33 +1112,45 @@
 
         <!-- Bankroll Tab -->
         <div id="bankroll-tab" class="tab-content">
-            <!-- Bankroll Overview -->
-            <div class="card">
-                <h2 class="card-title">Bankroll Overview</h2>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalBankroll">£0.00</div>
-                        <div class="stat-label">TOTAL BANKROLL</div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Main Stats -->
+                <div class="card">
+                    <h2 class="card-title">Account Balance</h2>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalBankroll">£0.00</div>
+                            <div class="stat-label">TOTAL BALANCE</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalProfit">£0.00</div>
+                            <div class="stat-label">NET PROFIT</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bookmaker Summary -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="card-title" style="margin-bottom: 0;">Accounts</h2>
+                        <button class="btn btn-primary btn-sm" onclick="manageBookmakers()">+</button>
                     </div>
                     <div id="bookmakersStats"></div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalProfit">£0.00</div>
-                        <div class="stat-label">TOTAL PROFIT</div>
-                    </div>
                 </div>
             </div>
-
-            <div class="grid">
-                <div class="card">
-                    <h2 class="card-title">Profit by Market Type</h2>
-                    <div class="chart-container">
-                        <canvas id="marketChart"></canvas>
+            
+            <div class="card">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h2 class="card-title">Market Performance</h2>
+                        <div style="height: 300px;">
+                            <canvas id="marketChart"></canvas>
+                        </div>
                     </div>
-                </div>
-                <div class="card">
-                    <h2 class="card-title">Win Rate by Market</h2>
-                    <div class="chart-container">
-                        <canvas id="winRateChart"></canvas>
+                    <div>
+                        <h2 class="card-title">Win Rate Analysis</h2>
+                        <div style="height: 300px;">
+                            <canvas id="winRateChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
