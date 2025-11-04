@@ -966,8 +966,6 @@
                 <button class="btn btn-primary btn-sm" onclick="window.location.href='auth.html'" id="login-btn">Login</button>
                 <div id="user-info" style="display: none; align-items: center; gap: 0.5rem;">
                     <button class="btn btn-sm" onclick="manualSync()" style="background: var(--success); color: white;" title="Sync data with cloud">↻</button>
-                    <button class="btn btn-sm" onclick="debugDataState()" style="background: var(--warning); color: white;" title="Debug data state">?</button>
-                    <button class="btn btn-sm" onclick="reAuthenticate()" style="background: var(--primary); color: white;" title="Re-authenticate">🔑</button>
                     <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
                     <button class="btn btn-sm" onclick="logout()" style="background: var(--bg-elevated); color: var(--text-secondary);">Logout</button>
                 </div>
@@ -1653,19 +1651,17 @@
         // Firebase integration
         let currentUser = null;
         
-        // Check auth state
+        // Check auth state - now handled by Firebase Auth listener
         function checkAuthState() {
+            // This is now handled by the Firebase onAuthStateChanged listener
+            // Just check if we have a stored user for initial UI state
             const user = localStorage.getItem('currentUser');
             if (user) {
                 const userData = JSON.parse(user);
                 showUserInfo(userData);
-                console.log('User authenticated:', userData.username);
+                console.log('User found in localStorage:', userData.username);
             } else {
-                console.log('No authenticated user found');
-                // Clear all data when not logged in
-                bets = [];
-                bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
-                currentBankroll = 'default';
+                console.log('No user found in localStorage');
             }
         }
         
@@ -1727,17 +1723,7 @@
         
         // Function to re-authenticate user
         async function reAuthenticate() {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!user.email) {
-                showNotification('No user credentials found. Please log in again.', 'error');
-                window.location.href = 'auth.html';
-                return;
-            }
-            
-            showNotification('Re-authenticating...', 'success');
-            
-            // Redirect to auth page with current email
-            sessionStorage.setItem('reauth_email', user.email);
+            showNotification('Redirecting to login...', 'success');
             window.location.href = 'auth.html';
         }
         
@@ -1763,17 +1749,9 @@
             console.log('Initializing app...');
             await initFirestore();
             checkAuthState();
-            const user = localStorage.getItem('currentUser');
-            if (user) {
-                console.log('User found, loading data...');
-                await loadUserData();
-            } else {
-                console.log('No user found, loading local data...');
-                loadData();
-            }
-            updateStats();
-            updateAnalytics();
-            updateStrategies();
+            
+            // Firebase auth listener will handle data loading
+            // Just initialize UI elements
             updateUnitBankrollOptions();
             updateEventSuggestions();
             
@@ -1862,7 +1840,7 @@
             try {
                 const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
                 const { getFirestore, doc, setDoc, getDoc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                const { getAuth, onAuthStateChanged, signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
                 
                 // Firebase configuration - injected by GitHub Actions
                 const firebaseConfig = {
@@ -1880,12 +1858,13 @@
                 
                 window.firestoreUtils = { doc, setDoc, getDoc, updateDoc };
                 window.firebaseAuth = auth;
+                window.signInWithEmailAndPassword = signInWithEmailAndPassword;
                 
                 // Listen for auth state changes
-                onAuthStateChanged(auth, (user) => {
+                onAuthStateChanged(auth, async (user) => {
                     console.log('Auth state changed:', user ? user.uid : 'No user');
                     if (user) {
-                        // User is signed in, update localStorage
+                        // User is signed in, update localStorage and load data
                         const userData = {
                             email: user.email,
                             username: user.email.split('@')[0],
@@ -1893,11 +1872,28 @@
                         };
                         localStorage.setItem('currentUser', JSON.stringify(userData));
                         showUserInfo(userData);
+                        
+                        // Load user data from Firestore
+                        await loadUserData();
+                        updateStats();
+                        updateAnalytics();
+                        updateStrategies();
+                        renderBetsTable();
+                        updateCharts();
+                        updateFilters();
+                        updateBookmakerSelects();
                     } else {
                         // User is signed out
                         localStorage.removeItem('currentUser');
                         document.getElementById('login-btn').style.display = 'block';
                         document.getElementById('user-info').style.display = 'none';
+                        
+                        // Clear data
+                        bets = [];
+                        bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
+                        currentBankroll = 'default';
+                        updateStats();
+                        renderBetsTable();
                     }
                 });
                 
@@ -1909,19 +1905,13 @@
         }
         
         async function saveUserData() {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!user.uid || !db) {
-                console.log('No user or database, saving to localStorage');
+            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                console.log('No authenticated Firebase user, saving locally only');
                 saveData();
                 return;
             }
             
-            // Check if user is actually authenticated with Firebase
-            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                console.log('User not authenticated with Firebase, saving locally only');
-                saveData();
-                return;
-            }
+            const user = window.firebaseAuth.currentUser;
             
             try {
                 // Ensure current bets are saved to current bankroll
@@ -1933,7 +1923,7 @@
                     lastUpdated: new Date().toISOString()
                 };
                 
-                console.log('Saving to Firestore:', userData);
+                console.log('Saving to Firestore for user:', user.uid);
                 await window.firestoreUtils.setDoc(window.firestoreUtils.doc(db, 'users', user.uid), userData, { merge: true });
                 console.log('Successfully saved to Firestore');
                 
@@ -1954,20 +1944,13 @@
         }
         
         async function loadUserData() {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!user.uid || !db) {
-                console.log('No user or database, loading from localStorage');
-                loadData();
+            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                console.log('No authenticated Firebase user');
+                loadData(); // Load local data as fallback
                 return;
             }
             
-            // Check if user is actually authenticated with Firebase
-            if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-                console.log('User not authenticated with Firebase, attempting to load local data');
-                showNotification('Not authenticated with cloud. Using local data.', 'error');
-                loadData();
-                return;
-            }
+            const user = window.firebaseAuth.currentUser;
             
             try {
                 console.log('Loading user data from Firestore for UID:', user.uid);
