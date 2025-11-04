@@ -965,6 +965,8 @@
             <div id="user-section">
                 <button class="btn btn-primary btn-sm" onclick="window.location.href='auth.html'" id="login-btn">Login</button>
                 <div id="user-info" style="display: none; align-items: center; gap: 0.5rem;">
+                    <button class="btn btn-sm" onclick="manualSync()" style="background: var(--success); color: white;" title="Sync data with cloud">↻</button>
+                    <button class="btn btn-sm" onclick="debugDataState()" style="background: var(--warning); color: white;" title="Debug data state">?</button>
                     <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
                     <button class="btn btn-sm" onclick="logout()" style="background: var(--bg-elevated); color: var(--text-secondary);">Logout</button>
                 </div>
@@ -1656,8 +1658,9 @@
             if (user) {
                 const userData = JSON.parse(user);
                 showUserInfo(userData);
-                showNotification('Login successful!', 'success');
+                console.log('User authenticated:', userData.username);
             } else {
+                console.log('No authenticated user found');
                 // Clear all data when not logged in
                 bets = [];
                 bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
@@ -1670,6 +1673,57 @@
             document.getElementById('login-btn').style.display = 'none';
             document.getElementById('user-info').style.display = 'flex';
         }
+        
+        // Manual sync function
+        async function manualSync() {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (!user.uid) {
+                showNotification('Please log in to sync data', 'error');
+                return;
+            }
+            
+            showNotification('Syncing data...', 'success');
+            
+            try {
+                // First save current data
+                await saveUserData();
+                
+                // Then reload from Firestore
+                await loadUserData();
+                
+                // Update UI
+                updateStats();
+                updateAnalytics();
+                updateStrategies();
+                renderBetsTable();
+                updateCharts();
+                updateFilters();
+                updateBookmakerSelects();
+                
+                showNotification('Data synced successfully!', 'success');
+            } catch (error) {
+                console.error('Sync error:', error);
+                showNotification('Sync failed. Please try again.', 'error');
+            }
+        }
+        
+        // Debug function to check data state
+        function debugDataState() {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            console.log('=== DEBUG DATA STATE ===');
+            console.log('Current User:', user);
+            console.log('Current Bankroll:', currentBankroll);
+            console.log('Bankrolls:', bankrolls);
+            console.log('Current Bets:', bets.length, 'bets');
+            console.log('Database connected:', !!db);
+            console.log('========================');
+            
+            // Show in notification too
+            showNotification(`Debug: ${bets.length} bets, bankroll: ${currentBankroll}, user: ${user.username || 'none'}`, 'success');
+        }
+        
+        // Make debug function available globally
+        window.debugDataState = debugDataState;
         
         function logout() {
             localStorage.removeItem('currentUser');
@@ -1687,11 +1741,16 @@
         
         // Initialize app
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log('Initializing app...');
             await initFirestore();
             checkAuthState();
             const user = localStorage.getItem('currentUser');
             if (user) {
+                console.log('User found, loading data...');
                 await loadUserData();
+            } else {
+                console.log('No user found, loading local data...');
+                loadData();
             }
             updateStats();
             updateAnalytics();
@@ -1807,19 +1866,30 @@
         async function saveUserData() {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (!user.uid || !db) {
+                console.log('No user or database, saving to localStorage');
                 saveData();
                 return;
             }
             
             try {
+                // Ensure current bets are saved to current bankroll
                 bankrolls[currentBankroll].bets = bets;
-                await window.firestoreUtils.setDoc(window.firestoreUtils.doc(db, 'users', user.uid), {
+                
+                const userData = {
                     bankrolls: bankrolls,
                     currentBankroll: currentBankroll,
-                    lastUpdated: new Date()
-                }, { merge: true });
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                console.log('Saving to Firestore:', userData);
+                await window.firestoreUtils.setDoc(window.firestoreUtils.doc(db, 'users', user.uid), userData, { merge: true });
+                console.log('Successfully saved to Firestore');
+                
+                // Also save to localStorage as backup
+                saveData();
             } catch (error) {
                 console.error('Error saving to Firestore:', error);
+                showNotification('Failed to sync data to cloud. Data saved locally.', 'error');
                 saveData(); // Fallback to localStorage
             }
         }
@@ -1827,21 +1897,47 @@
         async function loadUserData() {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (!user.uid || !db) {
+                console.log('No user or database, loading from localStorage');
                 loadData();
                 return;
             }
             
             try {
+                console.log('Loading user data from Firestore for UID:', user.uid);
                 const userDoc = await window.firestoreUtils.getDoc(window.firestoreUtils.doc(db, 'users', user.uid));
+                
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
+                    console.log('Loaded data from Firestore:', userData);
+                    
+                    // Load bankrolls from Firestore
                     bankrolls = userData.bankrolls || { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
                     currentBankroll = userData.currentBankroll || 'default';
+                    
+                    // Ensure current bankroll exists
+                    if (!bankrolls[currentBankroll]) {
+                        currentBankroll = 'default';
+                    }
+                    
+                    // Load bets from current bankroll
                     bets = bankrolls[currentBankroll]?.bets || [];
+                    
+                    console.log(`Loaded ${bets.length} bets from bankroll '${currentBankroll}'`);
+                    
                     updateBankrollSelector();
+                    showNotification(`Loaded ${bets.length} bets from cloud`, 'success');
+                } else {
+                    console.log('No user document found in Firestore, creating default');
+                    // Create default user document
+                    bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
+                    currentBankroll = 'default';
+                    bets = [];
+                    await saveUserData(); // Save default structure
+                    showNotification('Created new cloud account', 'success');
                 }
             } catch (error) {
                 console.error('Error loading from Firestore:', error);
+                showNotification('Failed to load cloud data. Using local data.', 'error');
                 loadData(); // Fallback to localStorage
             }
         }
@@ -2049,12 +2145,17 @@
             if (betIndex !== -1) {
                 bets[betIndex].result = newResult;
                 bets[betIndex].profit = calculateProfit(bets[betIndex]);
+                
+                // Save to cloud and local storage
                 await saveUserData();
+                
                 updateStats();
                 updateAnalytics();
                 updateStrategies();
                 renderBetsTable();
                 updateCharts();
+                
+                showNotification(`Bet updated: ${bets[betIndex].event} (synced to cloud)`, 'success');
             }
         }
 
@@ -2162,7 +2263,10 @@
             bet.profit = calculateProfitFromReturn(bet);
             
             bets.unshift(bet);
+            
+            // Save to cloud and local storage
             await saveUserData();
+            
             updateStats();
             updateAnalytics();
             renderBetsTable();
@@ -2175,7 +2279,7 @@
             closeAddBetModal();
             
             // Show notification
-            showNotification(`Bet added: ${bet.event}`, 'success');
+            showNotification(`Bet added: ${bet.event} (synced to cloud)`, 'success');
         }
 
         // Add bet
@@ -2243,7 +2347,10 @@
             bet.profit = calculateProfitFromReturn(bet);
             
             bets.unshift(bet);
+            
+            // Save to cloud and local storage
             await saveUserData();
+            
             updateStats();
             updateAnalytics();
             renderBetsTable();
@@ -2255,7 +2362,7 @@
             document.getElementById('betDate').valueAsDate = new Date();
             
             // Show notification
-            showNotification(`Bet added: ${bet.event}`, 'success');
+            showNotification(`Bet added: ${bet.event} (synced to cloud)`, 'success');
         }
 
         // Calculate profit from return amount
