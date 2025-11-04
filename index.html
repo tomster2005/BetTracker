@@ -1112,57 +1112,18 @@
 
         <!-- Bankroll Tab -->
         <div id="bankroll-tab" class="tab-content">
-            <!-- Portfolio Summary -->
+            <!-- Bankroll Overview -->
             <div class="card">
-                <h2 class="card-title">Portfolio Summary</h2>
+                <h2 class="card-title">Bankroll Overview</h2>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="totalBankroll">£0.00</div>
-                        <div class="stat-label">TOTAL BALANCE</div>
+                        <div class="stat-label">TOTAL BANKROLL</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="availableBalance">£0.00</div>
-                        <div class="stat-label">AVAILABLE</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="pendingStakes">£0.00</div>
-                        <div class="stat-label">PENDING</div>
-                    </div>
+                    <div id="bookmakersStats"></div>
                     <div class="stat-item">
                         <div class="stat-value" id="totalProfit">£0.00</div>
-                        <div class="stat-label">NET P&L</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bookmaker Breakdown -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <h2 class="card-title">Bookmaker Accounts</h2>
-                    <button class="btn btn-primary" onclick="manageBookmakers()">+ Add Account</button>
-                </div>
-                <div id="bookmakersStats"></div>
-            </div>
-
-            <!-- Performance Overview -->
-            <div class="card">
-                <h2 class="card-title">Performance Metrics</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                    <div class="stat-item">
-                        <div class="stat-value" id="roiPercent">0%</div>
-                        <div class="stat-label">ROI</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="avgStakeAmount">£0</div>
-                        <div class="stat-label">AVG STAKE</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalStaked">£0</div>
-                        <div class="stat-label">TOTAL STAKED</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="winRatePercent">0%</div>
-                        <div class="stat-label">WIN RATE</div>
+                        <div class="stat-label">TOTAL PROFIT</div>
                     </div>
                 </div>
             </div>
@@ -1175,18 +1136,10 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h2 class="card-title">Monthly Performance</h2>
+                    <h2 class="card-title">Win Rate by Market</h2>
                     <div class="chart-container">
-                        <canvas id="monthlyChart"></canvas>
+                        <canvas id="winRateChart"></canvas>
                     </div>
-                </div>
-            </div>
-
-            <!-- Transaction History -->
-            <div class="card">
-                <h2 class="card-title">Recent Transactions</h2>
-                <div id="transactionHistory">
-                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No recent transactions</p>
                 </div>
             </div>
         </div>
@@ -2898,11 +2851,13 @@
 
         // Initialize charts
         function initializeCharts() {
-            const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary');
-            const secondaryColor = getComputedStyle(document.body).getPropertyValue('--text-secondary');
+            const textColor = '#f0f6fc';
+            const secondaryColor = '#8b949e';
             
             // Bankroll over time chart
-            const bankrollCtx = document.getElementById('bankrollChart').getContext('2d');
+            const bankrollCanvas = document.getElementById('bankrollChart');
+            if (bankrollCanvas) {
+            const bankrollCtx = bankrollCanvas.getContext('2d');
             charts.bankroll = new Chart(bankrollCtx, {
                 type: 'line',
                 data: {
@@ -2992,8 +2947,12 @@
                 }
             });
 
+            }
+            
             // Market profit chart
-            const marketCtx = document.getElementById('marketChart').getContext('2d');
+            const marketCanvas = document.getElementById('marketChart');
+            if (marketCanvas) {
+            const marketCtx = marketCanvas.getContext('2d');
             charts.market = new Chart(marketCtx, {
                 type: 'bar',
                 data: {
@@ -3031,8 +2990,12 @@
                 }
             });
 
+            }
+
             // Win rate chart
-            const winRateCtx = document.getElementById('winRateChart').getContext('2d');
+            const winRateCanvas = document.getElementById('winRateChart');
+            if (winRateCanvas) {
+            const winRateCtx = winRateCanvas.getContext('2d');
             charts.winRate = new Chart(winRateCtx, {
                 type: 'doughnut',
                 data: {
@@ -3052,6 +3015,7 @@
                     }
                 }
             });
+            }
         }
 
         // Chart control functions
