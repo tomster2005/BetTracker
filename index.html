@@ -2514,10 +2514,14 @@
             });
             
             const totalBankroll = Object.values(bookmakerBalances).reduce((sum, balance) => sum + balance, 0);
-            const settledBets = bets.filter(bet => bet.result !== 'Pending');
+            // Filter out manual adjustments from betting stats
+            const bettingBets = bets.filter(bet => bet.type !== 'Manual Adjustment');
+            const bettingStaked = bettingBets.reduce((sum, bet) => sum + bet.stake, 0);
+            const bettingProfit = bettingBets.reduce((sum, bet) => sum + bet.profit, 0);
+            const settledBets = bettingBets.filter(bet => bet.result !== 'Pending');
             const wins = settledBets.filter(bet => bet.result === 'Win').length;
             const winRate = settledBets.length > 0 ? (wins / settledBets.length) * 100 : 0;
-            const roi = totalStaked > 0 ? (totalProfit / totalStaked) * 100 : 0;
+            const roi = bettingStaked > 0 ? (bettingProfit / bettingStaked) * 100 : 0;
             
             // Get elements
             const bankrollEl = document.getElementById('totalBankroll');
@@ -3172,7 +3176,8 @@
         function updateMarketChart() {
             const marketProfits = {};
             
-            bets.forEach(bet => {
+            // Filter out manual adjustments from market performance
+            bets.filter(bet => bet.type !== 'Manual Adjustment').forEach(bet => {
                 if (!marketProfits[bet.type]) {
                     marketProfits[bet.type] = 0;
                 }
@@ -3182,19 +3187,24 @@
             const labels = Object.keys(marketProfits);
             const data = Object.values(marketProfits);
             
-            charts.market.data.labels = labels;
-            charts.market.data.datasets[0].data = data;
-            charts.market.update();
+            if (charts.market) {
+                charts.market.data.labels = labels;
+                charts.market.data.datasets[0].data = data;
+                charts.market.update();
+            }
         }
 
         function updateWinRateChart() {
-            const settledBets = bets.filter(bet => bet.result !== 'Pending');
+            // Filter out manual adjustments from win rate analysis
+            const settledBets = bets.filter(bet => bet.result !== 'Pending' && bet.type !== 'Manual Adjustment');
             const wins = settledBets.filter(bet => bet.result === 'Win').length;
             const losses = settledBets.filter(bet => bet.result === 'Loss').length;
             
-            charts.winRate.data.labels = ['Wins', 'Losses'];
-            charts.winRate.data.datasets[0].data = [wins, losses];
-            charts.winRate.update();
+            if (charts.winRate) {
+                charts.winRate.data.labels = ['Wins', 'Losses'];
+                charts.winRate.data.datasets[0].data = [wins, losses];
+                charts.winRate.update();
+            }
         }
 
         // Update event suggestions
