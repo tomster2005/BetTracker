@@ -1112,44 +1112,62 @@
 
         <!-- Bankroll Tab -->
         <div id="bankroll-tab" class="tab-content">
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
-                <!-- Main Stats -->
-                <div class="card">
-                    <h2 class="card-title">Account Balance</h2>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalBankroll">£0.00</div>
-                            <div class="stat-label">TOTAL BALANCE</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalProfit">£0.00</div>
-                            <div class="stat-label">NET PROFIT</div>
-                        </div>
-                    </div>
+            <!-- Top Row: Key Metrics -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="totalBankroll">£0.00</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Balance</div>
                 </div>
-                
-                <!-- Bookmaker Summary -->
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 class="card-title" style="margin-bottom: 0;">Accounts</h2>
-                        <button class="btn btn-primary btn-sm" onclick="manageBookmakers()">+</button>
-                    </div>
-                    <div id="bookmakersStats"></div>
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);" id="totalProfit">£0.00</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Net P&L</div>
+                </div>
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="winRate">0%</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Win Rate</div>
+                </div>
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
+                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="roi">0%</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">ROI</div>
                 </div>
             </div>
-            
-            <div class="card">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div>
-                        <h2 class="card-title">Market Performance</h2>
-                        <div style="height: 300px;">
-                            <canvas id="marketChart"></canvas>
+
+            <!-- Main Content Row -->
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem;">
+                <!-- Charts Section -->
+                <div>
+                    <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 1.5rem; height: 500px;">
+                        <div class="card" style="padding: 1rem; margin-bottom: 0;">
+                            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Market Performance</h3>
+                            <div style="height: calc(100% - 2rem);">
+                                <canvas id="marketChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" style="padding: 1rem; margin-bottom: 0;">
+                            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Win Rate by Market</h3>
+                            <div style="height: calc(100% - 2rem);">
+                                <canvas id="winRateChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <h2 class="card-title">Win Rate Analysis</h2>
-                        <div style="height: 300px;">
-                            <canvas id="winRateChart"></canvas>
+                </div>
+
+                <!-- Sidebar: Bookmakers & Actions -->
+                <div>
+                    <div class="card" style="padding: 1rem; margin-bottom: 1.5rem; height: fit-content;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0; font-size: 1rem; color: var(--text-primary);">Bookmaker Accounts</h3>
+                            <button class="btn btn-primary btn-sm" onclick="manageBookmakers()">+ Add</button>
+                        </div>
+                        <div id="bookmakersStats"></div>
+                    </div>
+                    
+                    <div class="card" style="padding: 1rem; margin-bottom: 0;">
+                        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Quick Actions</h3>
+                        <div style="display: grid; gap: 0.75rem;">
+                            <button class="btn btn-success" onclick="openWithdrawModal()" style="width: 100%;">Withdraw Funds</button>
+                            <button class="btn btn-primary" onclick="openMoveFundsModal()" style="width: 100%;">Move Funds</button>
+                            <button class="btn" onclick="manageFreeBets()" style="width: 100%;">Manage Free Bets</button>
                         </div>
                     </div>
                 </div>
