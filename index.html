@@ -2491,7 +2491,10 @@
                 bookmakerBalances[bookie] = startingBalance + bookieProfit - pendingStakes - withdrawals;
             });
             
-            const totalBankroll = Object.values(bookmakerBalances).reduce((sum, balance) => sum + balance, 0);
+            // Calculate total free bets
+            const totalFreeBets = Object.values(bankrolls[currentBankroll].freeBets || {}).reduce((sum, amount) => sum + amount, 0);
+            
+            const totalBankroll = Object.values(bookmakerBalances).reduce((sum, balance) => sum + balance, 0) + totalFreeBets;
             const settledBets = bets.filter(bet => bet.result !== 'Pending');
             const wins = settledBets.filter(bet => bet.result === 'Win').length;
             const winRate = settledBets.length > 0 ? (wins / settledBets.length) * 100 : 0;
