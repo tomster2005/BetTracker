@@ -1162,14 +1162,7 @@
                         <div id="bookmakersStats"></div>
                     </div>
                     
-                    <div class="card" style="padding: 1rem; margin-bottom: 0;">
-                        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Quick Actions</h3>
-                        <div style="display: grid; gap: 0.75rem;">
-                            <button class="btn btn-success" onclick="openWithdrawModal()" style="width: 100%;">Withdraw Funds</button>
-                            <button class="btn btn-primary" onclick="openMoveFundsModal()" style="width: 100%;">Move Funds</button>
-                            <button class="btn" onclick="manageFreeBets()" style="width: 100%;">Manage Free Bets</button>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -2483,72 +2476,44 @@
             const roiEl = document.getElementById('roi');
             const totalBetsEl = document.getElementById('totalBets');
             
-            // Fallback to direct update if animation fails
-            try {
-                const currentBankroll = parseFloat(bankrollEl?.textContent?.replace('£', '') || '0');
-                const currentProfit = parseFloat(profitEl?.textContent?.replace('£', '') || '0');
-                const currentWinRate = parseFloat(winRateEl?.textContent?.replace('%', '') || '0');
-                const currentRoi = parseFloat(roiEl?.textContent?.replace('%', '') || '0');
-                const currentBets = parseInt(totalBetsEl?.textContent || '0');
-                
-                if (unitsMode) {
-                    animateNumber(bankrollEl, currentBankroll / unitSize, totalBankroll / unitSize, 500, '', 'u');
-                    animateNumber(profitEl, currentProfit / unitSize, totalProfit / unitSize, 500, '', 'u');
-                } else {
-                    animateNumber(bankrollEl, currentBankroll, totalBankroll, 500, '£');
-                    animateNumber(profitEl, currentProfit, totalProfit, 500, '£');
-                }
-                animateNumber(winRateEl, currentWinRate, winRate, 500, '', '%');
-                animateNumber(roiEl, currentRoi, roi, 500, '', '%');
-                animateNumber(totalBetsEl, currentBets, bets.length, 300);
-            } catch (e) {
-                // Fallback to direct update
-                if (bankrollEl) bankrollEl.textContent = formatCurrency(totalBankroll);
-                if (profitEl) profitEl.textContent = formatCurrency(totalProfit);
-                if (winRateEl) winRateEl.textContent = `${winRate.toFixed(1)}%`;
-                if (roiEl) roiEl.textContent = `${roi.toFixed(1)}%`;
-                if (totalBetsEl) totalBetsEl.textContent = bets.length;
+            // Update values directly
+            if (bankrollEl) bankrollEl.textContent = formatCurrency(totalBankroll);
+            if (profitEl) {
+                profitEl.textContent = formatCurrency(totalProfit);
+                profitEl.style.color = totalProfit >= 0 ? 'var(--success)' : 'var(--danger)';
             }
-            
-            if (profitEl) profitEl.className = `stat-value ${totalProfit >= 0 ? 'win' : 'loss'}`;
-            if (roiEl) roiEl.className = `stat-value ${roi >= 0 ? 'win' : 'loss'}`;
+            if (winRateEl) {
+                winRateEl.textContent = `${winRate.toFixed(1)}%`;
+                winRateEl.style.color = winRate >= 50 ? 'var(--success)' : 'var(--primary)';
+            }
+            if (roiEl) {
+                roiEl.textContent = `${roi.toFixed(1)}%`;
+                roiEl.style.color = roi >= 0 ? 'var(--success)' : 'var(--danger)';
+            }
+            if (totalBetsEl) totalBetsEl.textContent = bets.length;
             
             // Update header quick stats
             updateHeaderStats(totalProfit, winRate, bets.filter(bet => bet.result === 'Pending').length);
             
-            // Update total bets with bookmaker breakdown
-            
-            const bookmakerBets = {};
-            bets.forEach(bet => {
-                if (bet.bookmaker) {
-                    bookmakerBets[bet.bookmaker] = (bookmakerBets[bet.bookmaker] || 0) + 1;
-                }
-            });
-            
-            const tooltip = document.getElementById('betsTooltip');
-            if (Object.keys(bookmakerBets).length > 0) {
-                tooltip.innerHTML = Object.entries(bookmakerBets)
-                    .map(([bookie, count]) => `${bookie}: ${count} bets`)
-                    .join('<br>');
-            } else {
-                tooltip.innerHTML = 'No bookmaker data';
-            }
-            
             // Update bookmaker stats
             const bookmakersDiv = document.getElementById('bookmakersStats');
-            bookmakersDiv.innerHTML = '';
-            Object.keys(bookmakerBalances).forEach(bookie => {
-                const balance = bookmakerBalances[bookie];
-                const freeBets = (bankrolls[currentBankroll].freeBets || {})[bookie] || 0;
-                const div = document.createElement('div');
-                div.className = 'stat-item';
-                div.innerHTML = `
-                    <div class="stat-value ${balance >= bookmakers[bookie] ? 'win' : 'loss'}" onclick="editBookmaker('${bookie}')" style="cursor: pointer; text-decoration: underline;">${formatCurrency(balance)}</div>
-                    <div class="stat-label">${bookie} ${freeBets > 0 ? `+ ${formatCurrency(freeBets)} FB` : ''}</div>
-                    <button class="btn btn-sm btn-danger" onclick="deleteBookmaker('${bookie}')" style="margin-top: 0.5rem; font-size: 0.75rem; padding: 0.25rem 0.5rem;">Delete</button>
-                `;
-                bookmakersDiv.appendChild(div);
-            });
+            if (bookmakersDiv) {
+                bookmakersDiv.innerHTML = '';
+                Object.keys(bookmakerBalances).forEach(bookie => {
+                    const balance = bookmakerBalances[bookie];
+                    const freeBets = (bankrolls[currentBankroll].freeBets || {})[bookie] || 0;
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.5rem; background: var(--bg-secondary);';
+                    div.innerHTML = `
+                        <div>
+                            <div style="font-weight: 600;">${bookie}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${freeBets > 0 ? `+ ${formatCurrency(freeBets)} FB` : ''}</div>
+                        </div>
+                        <div style="font-weight: 700; color: ${balance >= bookmakers[bookie] ? 'var(--success)' : 'var(--danger)'}">${formatCurrency(balance)}</div>
+                    `;
+                    bookmakersDiv.appendChild(div);
+                });
+            }
         }
 
         // Render bets table with pagination
