@@ -1996,17 +1996,38 @@
                                      .reduce((sum, bet) => sum + bet.stake, 0);
             const withdrawals = (bankrolls[currentBankroll].withdrawals || []).filter(w => w.bookmaker === name)
                                .reduce((sum, w) => sum + w.amount, 0);
-            const currentBalance = startingBalance + bookieProfit - pendingStakes - withdrawals;
+            const freeBets = (bankrolls[currentBankroll].freeBets || {})[name] || 0;
+            const currentBalance = startingBalance + bookieProfit - pendingStakes - withdrawals + freeBets;
             
             const newBalance = parseFloat(prompt(`Edit current balance for ${name} (£):\nCurrent: ${formatCurrency(currentBalance)}`, currentBalance));
             if (!isNaN(newBalance)) {
-                // Calculate the difference and adjust starting balance to achieve target current balance
-                const targetStarting = newBalance - bookieProfit + pendingStakes + withdrawals;
-                bankrolls[currentBankroll].bookmakers[name] = targetStarting;
+                const difference = newBalance - currentBalance;
+                
+                if (difference !== 0) {
+                    // Add adjustment bet to track P&L change
+                    const adjustmentBet = {
+                        id: Date.now(),
+                        date: new Date().toISOString().split('T')[0],
+                        event: 'Balance Adjustment',
+                        type: 'Manual Adjustment',
+                        selection: difference > 0 ? 'Balance Increase' : 'Balance Decrease',
+                        odds: 1,
+                        stake: 0.01, // Minimal stake
+                        result: 'Win',
+                        bookmaker: name,
+                        returnAmount: 0.01 + Math.abs(difference),
+                        profit: difference
+                    };
+                    
+                    bets.unshift(adjustmentBet);
+                }
+                
                 await saveUserData();
                 updateStats();
+                updateAnalytics();
+                renderBetsTable();
                 updateCharts();
-                showNotification(`${name} balance adjusted to ${formatCurrency(newBalance)}`, 'success');
+                showNotification(`${name} balance adjusted by ${formatCurrency(difference)}`, 'success');
             }
         }
         
