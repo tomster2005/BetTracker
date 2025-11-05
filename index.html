@@ -3018,10 +3018,14 @@
                 bets = bets.filter(bet => bet.id !== betToDelete);
                 await saveUserData();
                 updateStats();
+                updateAnalytics();
+                updateStrategies();
                 renderBetsTable();
+                updatePendingBets(); // Also update pending bets list
                 updateCharts();
                 updateFilters();
                 closeDeleteModal();
+                showNotification('Bet deleted successfully', 'success');
             }
         }
 
@@ -3978,7 +3982,7 @@
             
             const html = currentPageBets.map(bet => `
                 <div style="border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; background: var(--bg-secondary);">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem;">${bet.event}</div>
                             <div style="color: var(--text-secondary); font-size: 0.875rem;">
@@ -3988,11 +3992,12 @@
                                 ${new Date(bet.date).toLocaleDateString('en-GB')} • ${bet.bookmaker}
                             </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <button class="btn btn-sm btn-success" onclick="updatePendingBetResult(${bet.id}, 'Win')">Win</button>
                             <button class="btn btn-sm btn-danger" onclick="updatePendingBetResult(${bet.id}, 'Loss')">Loss</button>
                             <button class="btn btn-sm btn-primary" onclick="openCashoutModal(${bet.id})">Cashout</button>
                             <button class="btn btn-sm btn-primary" onclick="editBet(${bet.id})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="showDeleteConfirm(${bet.id})">Delete</button>
                         </div>
                     </div>
                 </div>
