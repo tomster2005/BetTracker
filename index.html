@@ -2095,7 +2095,10 @@
             const bookmakers = Object.keys(bankrolls[currentBankroll].bookmakers || {});
             const freeBets = bankrolls[currentBankroll].freeBets || {};
             
-            const html = bookmakers.map(bookie => {
+            // Sort bookmakers by name for consistency in free bets modal
+            const sortedBookmakers = bookmakers.sort();
+            
+            const html = sortedBookmakers.map(bookie => {
                 const amount = freeBets[bookie] || 0;
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; background: var(--bg-secondary);">
@@ -2735,8 +2738,12 @@
             const bookmakersDiv = document.getElementById('bookmakersStats');
             if (bookmakersDiv) {
                 bookmakersDiv.innerHTML = '';
-                Object.keys(bookmakerBalances).forEach(bookie => {
-                    const balance = bookmakerBalances[bookie];
+                
+                // Sort bookmakers by balance (highest to lowest)
+                const sortedBookmakers = Object.entries(bookmakerBalances)
+                    .sort(([,balanceA], [,balanceB]) => balanceB - balanceA);
+                
+                sortedBookmakers.forEach(([bookie, balance]) => {
                     const freeBets = (bankrolls[currentBankroll].freeBets || {})[bookie] || 0;
                     const div = document.createElement('div');
                     div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.5rem; background: var(--bg-secondary);';
@@ -3416,7 +3423,10 @@
                 if (select) {
                     const currentValue = select.value;
                     select.innerHTML = '<option value="">Select Bookmaker</option>';
-                    bookmakers.forEach(bookie => {
+                    
+                    // Sort bookmakers alphabetically for dropdowns
+                    const sortedBookmakers = bookmakers.sort();
+                    sortedBookmakers.forEach(bookie => {
                         const option = document.createElement('option');
                         option.value = bookie;
                         option.textContent = bookie;
@@ -4056,7 +4066,10 @@
             const bookmakers = Object.keys(bankrolls[currentBankroll].bookmakers || {});
             const select = document.getElementById('withdrawBookmaker');
             select.innerHTML = '<option value="">Select Bookmaker</option>';
-            bookmakers.forEach(bookie => {
+            
+            // Sort bookmakers alphabetically for dropdown
+            const sortedBookmakers = bookmakers.sort();
+            sortedBookmakers.forEach(bookie => {
                 const option = document.createElement('option');
                 option.value = bookie;
                 option.textContent = bookie;
@@ -4194,7 +4207,9 @@
             fromSelect.innerHTML = '<option value="">Select Source</option>';
             toSelect.innerHTML = '<option value="">Select Destination</option>';
             
-            bookmakers.forEach(bookie => {
+            // Sort bookmakers alphabetically for dropdowns
+            const sortedBookmakers = bookmakers.sort();
+            sortedBookmakers.forEach(bookie => {
                 const fromOption = document.createElement('option');
                 fromOption.value = bookie;
                 fromOption.textContent = bookie;
