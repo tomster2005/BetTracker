@@ -1353,9 +1353,12 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">
-                                    <input type="checkbox" id="betIsFreebet" onchange="toggleFreeBetMode()"> Partial Free Bet
-                                </label>
+                                <label class="form-label">Free Bet Type</label>
+                                <select id="betFreeBetType" class="form-select" onchange="toggleFreeBetMode()">
+                                    <option value="none">No Free Bet</option>
+                                    <option value="full">Full Free Bet</option>
+                                    <option value="partial">Partial Free Bet</option>
+                                </select>
                                 <input type="number" id="betFreeBetAmount" class="form-input" step="0.01" min="0" placeholder="Free bet amount" style="margin-top: 0.5rem; display: none;">
                             </div>
                         </div>
@@ -1427,9 +1430,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">
-                        <input type="checkbox" id="addBetModalIsFreebet" onchange="toggleFreeBetModeModal()"> Partial Free Bet
-                    </label>
+                    <label class="form-label">Free Bet Type</label>
+                    <select id="addBetModalFreeBetType" class="form-select" onchange="toggleFreeBetModeModal()">
+                        <option value="none">No Free Bet</option>
+                        <option value="full">Full Free Bet</option>
+                        <option value="partial">Partial Free Bet</option>
+                    </select>
                     <input type="number" id="addBetModalFreeBetAmount" class="form-input" step="0.01" min="0" placeholder="Free bet amount" style="margin-top: 0.5rem; display: none;">
                 </div>
 
@@ -2266,12 +2272,17 @@
                 stake = stake * unitSize;
             }
             
-            const isFreebet = document.getElementById('addBetModalIsFreebet').checked;
+            const freeBetType = document.getElementById('addBetModalFreeBetType').value;
             let freeBetAmount = parseFloat(document.getElementById('addBetModalFreeBetAmount').value) || 0;
             
             // Convert free bet amount from units if needed
             if (unitsMode && freeBetAmount > 0) {
                 freeBetAmount = freeBetAmount * unitSize;
+            }
+            
+            // For full free bets, the entire stake is the free bet amount
+            if (freeBetType === 'full') {
+                freeBetAmount = stake;
             }
             
             // Validate and sanitize inputs
@@ -2312,12 +2323,13 @@
                 result: resultValue,
                 bookmaker: bookmakerValue,
                 returnAmount: validatedReturn,
-                isFreebet: isFreebet,
-                freeBetAmount: freeBetAmount
+                isFreebet: freeBetType !== 'none',
+                freeBetAmount: freeBetAmount,
+                freeBetType: freeBetType
             };
             
             // Deduct free bet amount if specified
-            if (isFreebet && freeBetAmount > 0 && bet.bookmaker) {
+            if (bet.isFreebet && freeBetAmount > 0 && bet.bookmaker) {
                 if (!bankrolls[currentBankroll].freeBets) bankrolls[currentBankroll].freeBets = {};
                 const currentFreeBets = bankrolls[currentBankroll].freeBets[bet.bookmaker] || 0;
                 bankrolls[currentBankroll].freeBets[bet.bookmaker] = Math.max(0, currentFreeBets - freeBetAmount);
@@ -2357,7 +2369,18 @@
                 stake = stake * unitSize;
             }
             
-            const isFreebet = document.getElementById('betIsFreebet').checked;
+            const freeBetType = document.getElementById('betFreeBetType').value;
+            let freeBetAmount = parseFloat(document.getElementById('betFreeBetAmount').value) || 0;
+            
+            // Convert free bet amount from units if needed
+            if (unitsMode && freeBetAmount > 0) {
+                freeBetAmount = freeBetAmount * unitSize;
+            }
+            
+            // For full free bets, the entire stake is the free bet amount
+            if (freeBetType === 'full') {
+                freeBetAmount = stake;
+            }
             
             // Validate and sanitize inputs
             const dateValue = document.getElementById('betDate').value;
@@ -2397,14 +2420,16 @@
                 result: resultValue,
                 bookmaker: bookmakerValue,
                 returnAmount: validatedReturn,
-                isFreebet: isFreebet
+                isFreebet: freeBetType !== 'none',
+                freeBetAmount: freeBetAmount,
+                freeBetType: freeBetType
             };
             
             // Deduct free bet amount if it's a free bet
-            if (isFreebet && bet.bookmaker) {
+            if (bet.isFreebet && freeBetAmount > 0 && bet.bookmaker) {
                 if (!bankrolls[currentBankroll].freeBets) bankrolls[currentBankroll].freeBets = {};
                 const currentFreeBets = bankrolls[currentBankroll].freeBets[bet.bookmaker] || 0;
-                bankrolls[currentBankroll].freeBets[bet.bookmaker] = Math.max(0, currentFreeBets - stake);
+                bankrolls[currentBankroll].freeBets[bet.bookmaker] = Math.max(0, currentFreeBets - freeBetAmount);
             }
             
             bet.profit = calculateProfitFromReturn(bet);
@@ -2431,18 +2456,30 @@
         // Calculate profit from return amount
         function calculateProfitFromReturn(bet) {
             if (bet.isFreebet && bet.freeBetAmount > 0) {
-                // Partial free bet calculation
-                const cashStake = bet.stake - bet.freeBetAmount;
-                switch (bet.result) {
-                    case 'Win':
-                        return bet.returnAmount - cashStake; // Only subtract cash portion
-                    case 'Loss':
-                        return -cashStake; // Only lose cash portion
-                    default:
-                        return 0;
+                if (bet.freeBetType === 'full' || bet.freeBetAmount >= bet.stake) {
+                    // Full free bet - no cash at risk
+                    switch (bet.result) {
+                        case 'Win':
+                            return bet.returnAmount; // Keep all winnings
+                        case 'Loss':
+                            return 0; // No cash lost
+                        default:
+                            return 0;
+                    }
+                } else {
+                    // Partial free bet calculation
+                    const cashStake = bet.stake - bet.freeBetAmount;
+                    switch (bet.result) {
+                        case 'Win':
+                            return bet.returnAmount - cashStake; // Only subtract cash portion
+                        case 'Loss':
+                            return -cashStake; // Only lose cash portion
+                        default:
+                            return 0;
+                    }
                 }
             } else if (bet.isFreebet) {
-                // Full free bet (legacy)
+                // Legacy full free bet (for backwards compatibility)
                 switch (bet.result) {
                     case 'Win':
                         return bet.returnAmount;
@@ -2465,26 +2502,30 @@
         }
 
         function toggleFreeBetMode() {
-            const checkbox = document.getElementById('betIsFreebet');
+            const freeBetType = document.getElementById('betFreeBetType').value;
             const freeBetAmountInput = document.getElementById('betFreeBetAmount');
             
-            if (checkbox.checked) {
+            if (freeBetType === 'partial') {
                 freeBetAmountInput.style.display = 'block';
                 freeBetAmountInput.placeholder = unitsMode ? 'Free bet amount (units)' : 'Free bet amount (£)';
+                freeBetAmountInput.required = true;
             } else {
                 freeBetAmountInput.style.display = 'none';
+                freeBetAmountInput.required = false;
             }
         }
 
         function toggleFreeBetModeModal() {
-            const checkbox = document.getElementById('addBetModalIsFreebet');
+            const freeBetType = document.getElementById('addBetModalFreeBetType').value;
             const freeBetAmountInput = document.getElementById('addBetModalFreeBetAmount');
             
-            if (checkbox.checked) {
+            if (freeBetType === 'partial') {
                 freeBetAmountInput.style.display = 'block';
                 freeBetAmountInput.placeholder = unitsMode ? 'Free bet amount (units)' : 'Free bet amount (£)';
+                freeBetAmountInput.required = true;
             } else {
                 freeBetAmountInput.style.display = 'none';
+                freeBetAmountInput.required = false;
             }
         }
         
@@ -2791,7 +2832,7 @@
                     <td>${bet.type}</td>
                     <td>${bet.selection}</td>
                     <td>${bet.odds.toFixed(2)}</td>
-                    <td>${formatCurrency(bet.stake)}${bet.isFreebet ? ' (FB)' : ''}</td>
+                    <td>${formatCurrency(bet.stake)}${bet.isFreebet ? (bet.freeBetType === 'full' || bet.freeBetAmount >= bet.stake ? ' (Full FB)' : ' (Partial FB)') : ''}</td>
                     <td class="${resultClass}">${bet.result}</td>
                     <td class="${bet.profit >= 0 ? 'win' : 'loss'}">${formatCurrency(bet.profit)}</td>
                     <td>
@@ -4187,7 +4228,7 @@
                 if (editReturnLabel) editReturnLabel.textContent = 'Return Amount (£)';
                 if (editStakeLabel) editStakeLabel.textContent = 'Stake (£)';
             }
-            // Update placeholders
+            // Update free bet placeholders
             toggleFreeBetMode();
             toggleFreeBetModeModal();
         }
