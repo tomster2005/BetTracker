@@ -2727,8 +2727,9 @@
                 bankrollROIEl.style.color = roi >= 0 ? 'var(--success)' : 'var(--danger)';
             }
             
-            // Update header quick stats
-            updateHeaderStats(totalProfit, winRate, bets.filter(bet => bet.result === 'Pending').length);
+            // Update header quick stats (exclude manual adjustments from pending count)
+            const pendingBets = bets.filter(bet => bet.result === 'Pending' && bet.type !== 'Manual Adjustment').length;
+            updateHeaderStats(totalProfit, winRate, pendingBets);
             
             // Update bookmaker stats
             const bookmakersDiv = document.getElementById('bookmakersStats');
@@ -2757,7 +2758,9 @@
         // Render bets table with pagination
         function renderBetsTable(betsToShow = null) {
             const tbody = document.getElementById('betsTableBody');
-            filteredBets = betsToShow || bets;
+            // Filter out manual adjustments from recent bets display
+            const allBets = betsToShow || bets;
+            filteredBets = allBets.filter(bet => bet.type !== 'Manual Adjustment');
             
             const pageSize = parseInt(document.getElementById('pageSize').value);
             const totalPages = Math.ceil(filteredBets.length / pageSize);
@@ -2837,7 +2840,11 @@
             const resultFilter = document.getElementById('filterResult').value;
             const bookmakerFilter = document.getElementById('filterBookmaker').value;
             
+            // Filter out manual adjustments and apply user filters
             const filtered = bets.filter(bet => {
+                // Exclude manual adjustments from recent bets table
+                if (bet.type === 'Manual Adjustment') return false;
+                
                 const matchesSearch = bet.event.toLowerCase().includes(searchTerm) ||
                                     bet.selection.toLowerCase().includes(searchTerm) ||
                                     bet.type.toLowerCase().includes(searchTerm);
@@ -2856,8 +2863,9 @@
         function updateFilters() {
             const marketFilter = document.getElementById('filterMarket');
             const bookmakerFilter = document.getElementById('filterBookmaker');
-            const markets = [...new Set(bets.map(bet => bet.type))];
-            const bookmakers = [...new Set(bets.map(bet => bet.bookmaker).filter(b => b))];
+            // Exclude manual adjustments from filter options
+            const markets = [...new Set(bets.filter(bet => bet.type !== 'Manual Adjustment').map(bet => bet.type))];
+            const bookmakers = [...new Set(bets.filter(bet => bet.type !== 'Manual Adjustment').map(bet => bet.bookmaker).filter(b => b))];
             
             // Keep current selections
             const currentMarket = marketFilter.value;
@@ -3867,7 +3875,8 @@
         // Filter pending bets
         function filterPendingBets() {
             const searchTerm = document.getElementById('pendingSearchInput').value.toLowerCase();
-            const allPendingBets = bets.filter(bet => bet.result === 'Pending');
+            // Exclude manual adjustments from pending bets
+            const allPendingBets = bets.filter(bet => bet.result === 'Pending' && bet.type !== 'Manual Adjustment');
             
             filteredPendingBets = allPendingBets.filter(bet => 
                 bet.event.toLowerCase().includes(searchTerm)
@@ -3891,7 +3900,8 @@
         
         // Update pending bets list
         function updatePendingBets() {
-            const allPendingBets = bets.filter(bet => bet.result === 'Pending');
+            // Exclude manual adjustments from pending bets
+            const allPendingBets = bets.filter(bet => bet.result === 'Pending' && bet.type !== 'Manual Adjustment');
             filteredPendingBets = allPendingBets;
             currentPendingPage = 1;
             renderPendingBets();
