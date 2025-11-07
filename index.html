@@ -1210,6 +1210,36 @@
                 <h2 class="card-title">Strategy Performance</h2>
                 <div id="strategyStats"></div>
             </div>
+            
+            <!-- Danger Zone -->
+            <div class="card" style="border-color: var(--danger); background: rgba(239, 68, 68, 0.05);">
+                <h2 class="card-title" style="color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">
+                    ⚠️ Danger Zone
+                </h2>
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--danger);">
+                    <h3 style="color: var(--danger); margin-bottom: 1rem; font-size: 1.1rem;">Complete Data Reset</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+                        This will permanently delete <strong>ALL</strong> of your data including:
+                    </p>
+                    <ul style="color: var(--text-secondary); margin-bottom: 1.5rem; padding-left: 1.5rem;">
+                        <li>All bets and betting history</li>
+                        <li>All bankrolls and their configurations</li>
+                        <li>All bookmaker accounts and balances</li>
+                        <li>All withdrawal records</li>
+                        <li>All free bet balances</li>
+                        <li>All manual adjustments</li>
+                        <li>All charts and analytics data</li>
+                    </ul>
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                        <p style="color: var(--danger); font-weight: 600; margin: 0;">
+                            ⚠️ WARNING: This action cannot be undone. All data will be permanently lost.
+                        </p>
+                    </div>
+                    <button class="btn btn-danger" onclick="showFullResetConfirmation()" style="width: 100%; padding: 1rem; font-size: 1rem; font-weight: 700;">
+                        🗑️ RESET ALL DATA
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Reports Tab -->
@@ -1611,6 +1641,60 @@
                 <button class="close" onclick="closeFreeBetsModal()">&times;</button>
             </div>
             <div id="freeBetsList"></div>
+        </div>
+    </div>
+
+    <!-- Full Reset Confirmation Modal -->
+    <div id="fullResetModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; border: 2px solid var(--danger);">
+            <div class="modal-header" style="background: rgba(239, 68, 68, 0.1); border-bottom: 1px solid var(--danger);">
+                <h2 style="color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">⚠️ CONFIRM COMPLETE DATA RESET</h2>
+                <button class="close" onclick="closeFullResetModal()">&times;</button>
+            </div>
+            <div style="padding: 2rem 0;">
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 style="color: var(--danger); margin-bottom: 1rem;">⚠️ FINAL WARNING</h3>
+                    <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 1rem;">
+                        You are about to permanently delete ALL of your betting data.
+                    </p>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        This includes all bets, bankrolls, bookmaker accounts, withdrawals, free bets, and analytics data.
+                    </p>
+                    <p style="color: var(--danger); font-weight: 700; margin: 0;">
+                        THIS ACTION CANNOT BE UNDONE!
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); font-weight: 600;">
+                        <input type="checkbox" id="confirmReset1" style="transform: scale(1.2);">
+                        I understand that all my betting data will be permanently deleted
+                    </label>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); font-weight: 600;">
+                        <input type="checkbox" id="confirmReset2" style="transform: scale(1.2);">
+                        I understand that this action cannot be undone
+                    </label>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600;">
+                        Type "DELETE ALL DATA" to confirm:
+                    </label>
+                    <input type="text" id="resetConfirmText" class="form-input" placeholder="Type: DELETE ALL DATA" style="border-color: var(--danger);">
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button class="btn btn-danger" onclick="executeFullReset()" id="executeResetBtn" disabled style="padding: 1rem 2rem; font-weight: 700;">
+                        🗑️ DELETE ALL DATA
+                    </button>
+                    <button class="btn btn-primary" onclick="closeFullResetModal()" style="padding: 1rem 2rem;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2139,6 +2223,89 @@
         function closeFreeBetsModal() {
             document.getElementById('freeBetsModal').style.display = 'none';
         }
+        
+        // Full Reset Functions
+        function showFullResetConfirmation() {
+            document.getElementById('fullResetModal').style.display = 'block';
+            // Reset form
+            document.getElementById('confirmReset1').checked = false;
+            document.getElementById('confirmReset2').checked = false;
+            document.getElementById('resetConfirmText').value = '';
+            document.getElementById('executeResetBtn').disabled = true;
+        }
+        
+        function closeFullResetModal() {
+            document.getElementById('fullResetModal').style.display = 'none';
+        }
+        
+        // Check if reset can be executed
+        function checkResetConfirmation() {
+            const checkbox1 = document.getElementById('confirmReset1').checked;
+            const checkbox2 = document.getElementById('confirmReset2').checked;
+            const textConfirm = document.getElementById('resetConfirmText').value === 'DELETE ALL DATA';
+            
+            document.getElementById('executeResetBtn').disabled = !(checkbox1 && checkbox2 && textConfirm);
+        }
+        
+        // Execute the full reset
+        async function executeFullReset() {
+            try {
+                // Clear all data
+                bets = [];
+                bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [], freeBets: {} } };
+                currentBankroll = 'default';
+                
+                // Clear localStorage
+                localStorage.removeItem('betTracker_bankrolls');
+                localStorage.removeItem('betTracker_currentBankroll');
+                
+                // Clear Firestore data if user is logged in
+                if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                    const userData = {
+                        bankrolls: bankrolls,
+                        currentBankroll: currentBankroll,
+                        lastUpdated: new Date().toISOString()
+                    };
+                    await window.firestoreUtils.setDoc(window.firestoreUtils.doc(db, 'users', window.firebaseAuth.currentUser.uid), userData);
+                }
+                
+                // Update all UI components
+                updateBankrollSelector();
+                updateStats();
+                updateAnalytics();
+                updateStrategies();
+                updatePendingBets();
+                renderBetsTable();
+                updateCharts();
+                updateFilters();
+                updateBookmakerSelects();
+                updateUnitBankrollOptions();
+                
+                closeFullResetModal();
+                showNotification('All data has been permanently deleted', 'success');
+                
+                // Switch to dashboard
+                switchTab('dashboard');
+                
+            } catch (error) {
+                console.error('Error during reset:', error);
+                showNotification('Error occurred during reset. Please try again.', 'error');
+            }
+        }
+        
+        // Add event listeners for reset confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add existing event listeners...
+            
+            // Reset confirmation listeners
+            const checkbox1 = document.getElementById('confirmReset1');
+            const checkbox2 = document.getElementById('confirmReset2');
+            const textInput = document.getElementById('resetConfirmText');
+            
+            if (checkbox1) checkbox1.addEventListener('change', checkResetConfirmation);
+            if (checkbox2) checkbox2.addEventListener('change', checkResetConfirmation);
+            if (textInput) textInput.addEventListener('input', checkResetConfirmation);
+        });
 
         async function editStartingBalance(name) {
             const current = bankrolls[currentBankroll].bookmakers[name];
@@ -4381,6 +4548,11 @@
             const freeBetsModal = document.getElementById('freeBetsModal');
             if (event.target === freeBetsModal) {
                 closeFreeBetsModal();
+            }
+            
+            const fullResetModal = document.getElementById('fullResetModal');
+            if (event.target === fullResetModal) {
+                closeFullResetModal();
             }
         }
     </script>
