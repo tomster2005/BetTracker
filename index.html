@@ -917,26 +917,35 @@
             }
             
             /* Bankroll tab mobile layout */
-            #bankroll-tab > div:first-child {
+            #bankroll-tab .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.5rem;
-                margin-bottom: 1rem;
             }
             
-            #bankroll-tab > div:last-child {
-                display: block;
+            #bankroll-tab .grid-2 {
+                grid-template-columns: 1fr;
             }
             
-            #bankroll-tab > div:last-child > div {
-                margin-bottom: 1rem;
+            #bookmakersStats > div {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border);
+                border-radius: 8px;
             }
             
-            #bankroll-tab > div:last-child > div:first-child {
-                display: block;
+            #bookmakersStats > div > div:first-child {
+                flex: 1;
             }
             
-            #bankroll-tab > div:last-child > div:first-child > div {
-                margin-bottom: 1rem;
+            #bookmakersStats > div > div:last-child {
+                font-weight: 700;
+                font-size: 1.1rem;
+                cursor: pointer;
+                text-decoration: underline;
             }
             
             /* Pending bets mobile layout */
@@ -976,12 +985,7 @@
                 font-size: 0.9rem;
             }
             
-            /* Compact bookmaker display */
-            #bookmakersStats > div {
-                padding: 0.75rem;
-                margin-bottom: 0.5rem;
-                border-radius: 8px;
-            }
+
             
             /* Mobile table actions */
             .table td:last-child {
@@ -1315,57 +1319,48 @@
 
         <!-- Bankroll Tab -->
         <div id="bankroll-tab" class="tab-content">
-            <!-- Top Row: Key Metrics -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="totalBankroll">£0.00</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Balance</div>
+            <!-- Stats Grid -->
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalBankroll">£0.00</div>
+                    <div class="stat-label">Total Balance</div>
                 </div>
-                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);" id="totalProfit">£0.00</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Net P&L</div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalProfit">£0.00</div>
+                    <div class="stat-label">Net P&L</div>
                 </div>
-                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="bankrollWinRate">0%</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Win Rate</div>
+                <div class="stat-item">
+                    <div class="stat-value" id="bankrollWinRate">0%</div>
+                    <div class="stat-label">Win Rate</div>
                 </div>
-                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);" id="bankrollROI">0%</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">ROI</div>
+                <div class="stat-item">
+                    <div class="stat-value" id="bankrollROI">0%</div>
+                    <div class="stat-label">ROI</div>
                 </div>
             </div>
 
-            <!-- Main Content Row -->
-            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem;">
-                <!-- Charts Section -->
-                <div>
-                    <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 1.5rem; height: 500px;">
-                        <div class="card" style="padding: 1rem; margin-bottom: 0;">
-                            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Market Performance</h3>
-                            <div style="height: calc(100% - 2rem);">
-                                <canvas id="marketChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="card" style="padding: 1rem; margin-bottom: 0;">
-                            <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--text-primary);">Win Rate by Market</h3>
-                            <div style="height: calc(100% - 2rem);">
-                                <canvas id="winRateChart"></canvas>
-                            </div>
-                        </div>
+            <!-- Bookmakers -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 class="card-title" style="margin: 0;">Bookmaker Accounts</h2>
+                    <button class="btn btn-primary btn-sm" onclick="manageBookmakers()">+ Add</button>
+                </div>
+                <div id="bookmakersStats"></div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid-2">
+                <div class="card">
+                    <h2 class="card-title">Market Performance</h2>
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
                     </div>
                 </div>
-
-                <!-- Sidebar: Bookmakers & Actions -->
-                <div>
-                    <div class="card" style="padding: 1rem; margin-bottom: 1.5rem; height: fit-content;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3 style="margin: 0; font-size: 1rem; color: var(--text-primary);">Bookmaker Accounts</h3>
-                            <button class="btn btn-primary btn-sm" onclick="manageBookmakers()">+ Add</button>
-                        </div>
-                        <div id="bookmakersStats"></div>
+                <div class="card">
+                    <h2 class="card-title">Win Rate by Market</h2>
+                    <div class="chart-container">
+                        <canvas id="winRateChart"></canvas>
                     </div>
-                    
-
                 </div>
             </div>
         </div>
