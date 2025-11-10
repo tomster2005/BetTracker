@@ -17,9 +17,9 @@ if (!API_KEY) {
     process.exit(1);
 }
 
-// Dynamically calculate date range (next 72 hours)
+// Dynamically calculate date range (next 7 days for better coverage)
 const now = new Date();
-const endDate = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // Add 72 hours in milliseconds
+const endDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // Add 7 days in milliseconds
 
 // Format dates for API (YYYY-MM-DD)
 const formatDate = (date) => date.toISOString().split('T')[0];
@@ -59,9 +59,15 @@ function fetchFixtures() {
         // Process complete response
         res.on('end', () => {
             console.log(`📊 Received ${data.length} bytes of data`);
+            console.log(`🔍 HTTP Status: ${res.statusCode}`);
             
             try {
                 const response = JSON.parse(data);
+                console.log('📋 API Response structure:', {
+                    hasResponse: !!response.response,
+                    hasErrors: !!(response.errors && response.errors.length),
+                    responseLength: response.response ? response.response.length : 0
+                });
                 
                 // Check for API errors
                 if (response.errors && response.errors.length > 0) {
@@ -72,11 +78,17 @@ function fetchFixtures() {
                 // Check API response structure
                 if (!response.response) {
                     console.error('❌ Invalid API response structure');
-                    console.error('Response:', response);
+                    console.error('Full response:', JSON.stringify(response, null, 2));
                     process.exit(1);
                 }
 
                 console.log(`📈 API returned ${response.response.length} total fixtures`);
+                
+                // Show sample fixture if available
+                if (response.response.length > 0) {
+                    console.log('📝 Sample fixture:', JSON.stringify(response.response[0], null, 2));
+                }
+                
                 processFixtures(response.response);
                 
             } catch (error) {
