@@ -740,46 +740,52 @@
             }
             
             .header {
-                padding: 0.75rem;
+                padding: 1rem 0.75rem;
                 display: grid;
-                grid-template-columns: auto 1fr auto;
+                grid-template-columns: 48px 1fr auto;
                 align-items: center;
-                gap: 0.5rem;
+                gap: 1rem;
+                min-height: 64px;
             }
             
             .logo {
-                font-size: 1rem;
+                font-size: 1.1rem;
                 grid-column: 2;
                 text-align: center;
+                font-weight: 700;
             }
             
             .mobile-menu-toggle {
                 grid-column: 1;
-                width: 44px;
-                height: 44px;
-                font-size: 1.2rem;
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
                 padding: 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                border-radius: 12px;
             }
             
             #user-section {
                 grid-column: 3;
                 display: flex;
-                gap: 0.25rem;
+                gap: 0.5rem;
+                align-items: center;
             }
             
             .header-toggle {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.75rem;
-                min-height: 40px;
+                padding: 0.6rem 0.8rem;
+                font-size: 0.8rem;
+                min-height: 44px;
+                border-radius: 10px;
             }
             
             .btn-sm {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.75rem;
-                min-height: 40px;
+                padding: 0.6rem 0.8rem;
+                font-size: 0.8rem;
+                min-height: 44px;
+                border-radius: 10px;
             }
             
             .sidebar {
