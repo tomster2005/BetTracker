@@ -1955,18 +1955,62 @@
         // Firebase integration
         let currentUser = null;
         
-        // Check auth state - now handled by Firebase Auth listener
+        // Check auth state and force login if needed
         function checkAuthState() {
-            // This is now handled by the Firebase onAuthStateChanged listener
-            // Just check if we have a stored user for initial UI state
             const user = localStorage.getItem('currentUser');
             if (user) {
                 const userData = JSON.parse(user);
                 showUserInfo(userData);
                 console.log('User found in localStorage:', userData.username);
             } else {
-                console.log('No user found in localStorage');
+                console.log('No user found - redirecting to login');
+                // Force login after a short delay to allow page to load
+                setTimeout(() => {
+                    if (!localStorage.getItem('currentUser')) {
+                        showLoginPrompt();
+                    }
+                }, 1000);
             }
+        }
+        
+        // Show login prompt modal
+        function showLoginPrompt() {
+            const loginModal = document.createElement('div');
+            loginModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            loginModal.innerHTML = `
+                <div style="
+                    background: var(--bg-card);
+                    padding: 2rem;
+                    border-radius: 16px;
+                    text-align: center;
+                    max-width: 400px;
+                    margin: 1rem;
+                    box-shadow: var(--shadow-xl);
+                    border: 1px solid var(--border);
+                ">
+                    <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Login Required</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+                        Please log in to access your betting data and sync across devices.
+                    </p>
+                    <button class="btn btn-primary" onclick="window.location.href='auth.html'" style="width: 100%; padding: 1rem;">
+                        Go to Login
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(loginModal);
         }
         
         function showUserInfo(userData) {
@@ -2104,9 +2148,15 @@
         });
         
         function logout() {
+            // Sign out from Firebase
+            if (window.firebaseAuth && window.firebaseAuth.currentUser) {
+                window.firebaseAuth.signOut();
+            }
+            
             localStorage.removeItem('currentUser');
             document.getElementById('login-btn').style.display = 'block';
             document.getElementById('user-info').style.display = 'none';
+            
             // Clear all data on logout
             bets = [];
             bankrolls = { default: { name: 'Default Bankroll', bets: [], startingBankroll: 0, bookmakers: {}, withdrawals: [] } };
@@ -2114,7 +2164,11 @@
             updateStats();
             renderBetsTable();
             updateCharts();
+            
             showNotification('Logged out successfully', 'success');
+            
+            // Show login prompt after logout
+            setTimeout(showLoginPrompt, 1000);
         }
         
         // Initialize app
@@ -2255,6 +2309,12 @@
                         localStorage.setItem('currentUser', JSON.stringify(userData));
                         showUserInfo(userData);
                         
+                        // Remove login prompt if it exists
+                        const existingModal = document.querySelector('[style*="z-index: 10000"]');
+                        if (existingModal) {
+                            existingModal.remove();
+                        }
+                        
                         // Load user data from Firestore
                         await loadUserData();
                         updateStats();
@@ -2265,7 +2325,7 @@
                         updateFilters();
                         updateBookmakerSelects();
                     } else {
-                        // User is signed out
+                        // User is signed out - show login prompt
                         localStorage.removeItem('currentUser');
                         document.getElementById('login-btn').style.display = 'block';
                         document.getElementById('user-info').style.display = 'none';
@@ -2276,6 +2336,9 @@
                         currentBankroll = 'default';
                         updateStats();
                         renderBetsTable();
+                        
+                        // Show login prompt after a delay
+                        setTimeout(showLoginPrompt, 500);
                     }
                 });
                 
