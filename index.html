@@ -2006,35 +2006,39 @@
                 content: 'Your complete betting tracker and analytics platform. Let\'s take a quick tour of the key features.'
             },
             {
-                target: '.mobile-menu-toggle',
+                target: '#mobileMenuBtn',
                 title: 'Navigation Menu',
-                content: 'Click here to access all sections: Dashboard, Bankroll, Analytics, and more.'
+                content: 'Click this hamburger menu to access all sections: Dashboard, Bankroll, Analytics, and more.'
             },
             {
                 target: '.btn-primary[onclick="openAddBetModal()"]',
                 title: 'Add New Bets',
-                content: 'Click the + button to quickly add new bets. You can track stakes, odds, and results.'
+                content: 'Click the + Add Bet button to quickly add new bets. You can track stakes, odds, and results.'
             },
             {
-                target: '.bankroll-selector',
-                title: 'Bankroll Management',
-                content: 'Manage multiple bankrolls and bookmaker accounts. Add bookmakers and track balances here.'
+                target: '.btn-success[onclick="manageBookmakers()"]',
+                title: 'Add Bookmakers',
+                content: 'Click + Bookie to add bookmaker accounts and manage your balances across different sites.'
             },
             {
-                target: '#betsTable',
+                target: '.table-container',
                 title: 'Betting History',
-                content: 'View all your bets with filtering and sorting. Update results and track your performance.'
+                content: 'View all your bets with filtering and sorting. Update results and track your performance here.'
             },
             {
-                target: '.stats-grid',
+                target: '.stats-grid .stat-item:first-child',
                 title: 'Key Statistics',
-                content: 'Monitor your total bets, win rate, ROI, and profit/loss at a glance.'
+                content: 'Monitor your total bets, win rate, ROI, and profit/loss at a glance in these stat cards.'
             }
         ];
         
         function showTutorial() {
             currentTutorialStep = 0;
-            showTutorialStep();
+            // Ensure we're on dashboard for tutorial
+            switchTab('dashboard');
+            setTimeout(() => {
+                showTutorialStep();
+            }, 300);
         }
         
         function showTutorialStep() {
@@ -2065,30 +2069,37 @@
             const target = document.querySelector(step.target);
             let targetRect = { top: 50, left: 50, width: 100, height: 100 };
             if (target) {
-                targetRect = target.getBoundingClientRect();
-                // Create pulsing highlight overlay
-                const highlight = document.createElement('div');
-                highlight.id = 'tutorialHighlight';
-                highlight.style.cssText = `
-                    position: fixed;
-                    top: ${targetRect.top - 8}px;
-                    left: ${targetRect.left - 8}px;
-                    width: ${targetRect.width + 16}px;
-                    height: ${targetRect.height + 16}px;
-                    border: 4px solid var(--primary);
-                    border-radius: 12px;
-                    z-index: 10002;
-                    pointer-events: none;
-                    animation: tutorialPulse 2s infinite;
-                    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2);
-                `;
-                document.body.appendChild(highlight);
-                
-                // Also highlight the target itself
-                target.style.position = 'relative';
-                target.style.zIndex = '10003';
-                target.style.transform = 'scale(1.05)';
-                target.style.transition = 'transform 0.3s ease';
+                // Wait for element to be visible
+                setTimeout(() => {
+                    targetRect = target.getBoundingClientRect();
+                    
+                    // Only highlight if element is visible
+                    if (targetRect.width > 0 && targetRect.height > 0) {
+                        // Create pulsing highlight overlay
+                        const highlight = document.createElement('div');
+                        highlight.id = 'tutorialHighlight';
+                        highlight.style.cssText = `
+                            position: fixed;
+                            top: ${targetRect.top - 8}px;
+                            left: ${targetRect.left - 8}px;
+                            width: ${targetRect.width + 16}px;
+                            height: ${targetRect.height + 16}px;
+                            border: 4px solid var(--primary);
+                            border-radius: 12px;
+                            z-index: 10002;
+                            pointer-events: none;
+                            animation: tutorialPulse 2s infinite;
+                            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2);
+                        `;
+                        document.body.appendChild(highlight);
+                        
+                        // Also highlight the target itself
+                        target.style.position = 'relative';
+                        target.style.zIndex = '10003';
+                        target.style.transform = 'scale(1.05)';
+                        target.style.transition = 'transform 0.3s ease';
+                    }
+                }, 100);
             }
             
             // Create tutorial card
