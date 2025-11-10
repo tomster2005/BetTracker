@@ -1,13 +1,51 @@
 {
-  "lastUpdated": "2025-11-10T22:40:28.703Z",
-  "totalFixtures": 0,
-  "totalLeagues": 0,
+  "lastUpdated": "2025-11-10T22:46:13.976Z",
+  "totalFixtures": 1,
+  "totalLeagues": 1,
   "dateRange": {
-    "from": "2025-11-10 22:40:28",
-    "to": "2025-11-17 22:40:28",
+    "from": "2025-11-10 22:46:13",
+    "to": "2025-11-17 22:46:13",
     "fromDate": "2025-11-10",
     "toDate": "2025-11-17"
   },
-  "fixtures": [],
-  "fixturesByLeague": {}
+  "fixtures": [
+    {
+      "matchId": 1485332,
+      "homeTeam": "Funkbol",
+      "awayTeam": "Desimpedidos Goti",
+      "homeTeamId": 26900,
+      "awayTeamId": 26898,
+      "league": "Kings Cup",
+      "country": "Brazil",
+      "leagueId": 1205,
+      "season": 2025,
+      "kickoffTime": "2025-11-10T23:00:00+00:00",
+      "status": "Not Started",
+      "venue": {
+        "name": "Trident Arena",
+        "city": null
+      }
+    }
+  ],
+  "fixturesByLeague": {
+    "Brazil - Kings Cup": [
+      {
+        "matchId": 1485332,
+        "homeTeam": "Funkbol",
+        "awayTeam": "Desimpedidos Goti",
+        "homeTeamId": 26900,
+        "awayTeamId": 26898,
+        "league": "Kings Cup",
+        "country": "Brazil",
+        "leagueId": 1205,
+        "season": 2025,
+        "kickoffTime": "2025-11-10T23:00:00+00:00",
+        "status": "Not Started",
+        "venue": {
+          "name": "Trident Arena",
+          "city": null
+        }
+      }
+    ]
+  }
 }
