@@ -1,12 +1,12 @@
 {
-  "lastUpdated": "2025-11-10T22:37:30.364Z",
+  "lastUpdated": "2025-11-10T22:40:28.703Z",
   "totalFixtures": 0,
   "totalLeagues": 0,
   "dateRange": {
-    "from": "2025-11-10 22:37:30",
-    "to": "2025-11-13 22:37:30",
+    "from": "2025-11-10 22:40:28",
+    "to": "2025-11-17 22:40:28",
     "fromDate": "2025-11-10",
-    "toDate": "2025-11-13"
+    "toDate": "2025-11-17"
   },
   "fixtures": [],
   "fixturesByLeague": {}
