@@ -9,6 +9,8 @@ on:
 jobs:
   fetch-fixtures:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout repository
@@ -25,13 +27,15 @@ jobs:
       run: node fetch-fixtures.js
       
     - name: Commit and push if changed
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add fixtures.json
         if ! git diff --staged --quiet; then
           git commit -m "Update fixtures data $(date)"
-          git push
+          git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git
         else
           echo "No changes to commit"
         fi
