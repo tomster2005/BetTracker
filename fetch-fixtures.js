@@ -38,7 +38,7 @@ console.log(`🔍 Fetching fixtures from ${formatDateTime(now)} to ${formatDateT
 function fetchFixtures() {
     const options = {
         hostname: 'v3.football.api-sports.io',
-        path: `/fixtures?from=${formatDate(now)}&to=${formatDate(endDate)}&timezone=UTC`,
+        path: `/fixtures?date=${formatDate(now)}&timezone=UTC`,
         method: 'GET',
         headers: {
             'X-RapidAPI-Key': API_KEY,
