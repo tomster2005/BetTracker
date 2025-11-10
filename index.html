@@ -1118,6 +1118,11 @@
             }
         }
         
+        /* User dropdown hover */
+        #userDropdown button:hover {
+            background: var(--bg-secondary) !important;
+        }
+        
         /* Hide desktop-only elements on mobile */
         @media (max-width: 768px) {
             .desktop-only {
@@ -1179,10 +1184,13 @@
             </button>
             <div id="user-section">
                 <button class="btn btn-primary btn-sm" onclick="window.location.href='auth.html'" id="login-btn">Login</button>
-                <div id="user-info" style="display: none; align-items: center; gap: 0.5rem;">
+                <div id="user-info" style="display: none; align-items: center; gap: 0.5rem; position: relative;">
                     <button class="btn btn-sm" onclick="manualSync()" style="background: var(--success); color: white;" title="Sync data with cloud">↻</button>
                     <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
-                    <button class="btn btn-sm" onclick="logout()" style="background: var(--bg-elevated); color: var(--text-secondary);">Logout</button>
+                    <button class="btn btn-sm" onclick="toggleUserMenu()" id="userMenuBtn" style="background: var(--bg-elevated); color: var(--text-secondary);">⚙</button>
+                    <div id="userDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1000; min-width: 120px; margin-top: 0.5rem;">
+                        <button class="btn" onclick="logout(); toggleUserMenu();" style="width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; border-radius: 0; color: var(--text-primary);">Logout</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2076,6 +2084,22 @@
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
                 closeMobileMenu();
+            }
+        });
+        
+        // User menu functions
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenuBtn');
+            const dropdown = document.getElementById('userDropdown');
+            
+            if (dropdown && userMenu && !userMenu.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
             }
         });
         
