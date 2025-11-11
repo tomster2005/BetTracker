@@ -1123,21 +1123,7 @@
             background: var(--bg-secondary) !important;
         }
         
-        /* Tutorial pulse animation */
-        @keyframes tutorialPulse {
-            0% {
-                border-color: var(--primary);
-                box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2);
-            }
-            50% {
-                border-color: var(--primary-light);
-                box-shadow: 0 0 50px rgba(88, 166, 255, 1), inset 0 0 50px rgba(88, 166, 255, 0.4);
-            }
-            100% {
-                border-color: var(--primary);
-                box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2);
-            }
-        }
+
         
         /* Hide desktop-only elements on mobile */
         @media (max-width: 768px) {
@@ -1204,8 +1190,7 @@
                     <button class="btn btn-sm" onclick="manualSync()" style="background: var(--success); color: white;" title="Sync data with cloud">↻</button>
                     <span id="username" style="color: var(--text-primary); font-weight: 500; font-size: 0.875rem;"></span>
                     <button class="btn btn-sm" onclick="toggleUserMenu()" id="userMenuBtn" style="background: var(--bg-elevated); color: var(--text-secondary);">⚙</button>
-                    <div id="userDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1000; min-width: 140px; margin-top: 0.5rem;">
-                        <button class="btn" onclick="showTutorial(); toggleUserMenu();" style="width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; border-radius: 0; color: var(--text-primary); border-bottom: 1px solid var(--border);">📚 Tutorial</button>
+                    <div id="userDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 1000; min-width: 120px; margin-top: 0.5rem;">
                         <button class="btn" onclick="logout(); toggleUserMenu();" style="width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; border-radius: 0; color: var(--text-primary);">Logout</button>
                     </div>
                 </div>
@@ -1990,204 +1975,7 @@
             }
         }
         
-        // Tutorial system
-        function checkTutorial() {
-            const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
-            if (!hasSeenTutorial) {
-                setTimeout(showTutorial, 1000);
-            }
-        }
-        
-        let currentTutorialStep = 0;
-        const tutorialSteps = [
-            {
-                target: '.logo',
-                title: 'Welcome to Stake Analytics!',
-                content: 'Your complete betting tracker and analytics platform. Let\'s take a quick tour of the key features.'
-            },
-            {
-                target: '#mobileMenuBtn',
-                title: 'Navigation Menu',
-                content: 'Click this hamburger menu to access all sections: Dashboard, Bankroll, Analytics, and more.'
-            },
-            {
-                target: '.btn-primary[onclick="openAddBetModal()"]',
-                title: 'Add New Bets',
-                content: 'Click the + Add Bet button to quickly add new bets. You can track stakes, odds, and results.'
-            },
-            {
-                target: '.btn-success[onclick="manageBookmakers()"]',
-                title: 'Add Bookmakers',
-                content: 'Click + Bookie to add bookmaker accounts and manage your balances across different sites.'
-            },
-            {
-                target: '.table-container',
-                title: 'Betting History',
-                content: 'View all your bets with filtering and sorting. Update results and track your performance here.'
-            },
-            {
-                target: '.stats-grid .stat-item:first-child',
-                title: 'Key Statistics',
-                content: 'Monitor your total bets, win rate, ROI, and profit/loss at a glance in these stat cards.'
-            }
-        ];
-        
-        function showTutorial() {
-            currentTutorialStep = 0;
-            // Ensure we're on dashboard for tutorial
-            switchTab('dashboard');
-            setTimeout(() => {
-                showTutorialStep();
-            }, 300);
-        }
-        
-        function showTutorialStep() {
-            const step = tutorialSteps[currentTutorialStep];
-            if (!step) return;
-            
-            // Remove existing tutorial
-            const existing = document.getElementById('tutorialOverlay');
-            if (existing) existing.remove();
-            
-            // Create overlay
-            const overlay = document.createElement('div');
-            overlay.id = 'tutorialOverlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                z-index: 10001;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
-            
-            // Get target element position
-            const target = document.querySelector(step.target);
-            let targetRect = { top: 50, left: 50, width: 100, height: 100 };
-            if (target) {
-                // Wait for element to be visible
-                setTimeout(() => {
-                    targetRect = target.getBoundingClientRect();
-                    
-                    // Only highlight if element is visible
-                    if (targetRect.width > 0 && targetRect.height > 0) {
-                        // Create pulsing highlight overlay
-                        const highlight = document.createElement('div');
-                        highlight.id = 'tutorialHighlight';
-                        highlight.style.cssText = `
-                            position: fixed;
-                            top: ${targetRect.top - 8}px;
-                            left: ${targetRect.left - 8}px;
-                            width: ${targetRect.width + 16}px;
-                            height: ${targetRect.height + 16}px;
-                            border: 4px solid var(--primary);
-                            border-radius: 12px;
-                            z-index: 10002;
-                            pointer-events: none;
-                            animation: tutorialPulse 2s infinite;
-                            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2);
-                        `;
-                        document.body.appendChild(highlight);
-                        
-                        // Also highlight the target itself
-                        target.style.position = 'relative';
-                        target.style.zIndex = '10003';
-                        target.style.transform = 'scale(1.05)';
-                        target.style.transition = 'transform 0.3s ease';
-                    }
-                }, 100);
-            }
-            
-            // Create tutorial card
-            const card = document.createElement('div');
-            card.style.cssText = `
-                background: var(--bg-card);
-                border: 1px solid var(--border);
-                border-radius: 16px;
-                padding: 2rem;
-                max-width: 400px;
-                margin: 1rem;
-                box-shadow: var(--shadow-xl);
-                text-align: center;
-            `;
-            
-            card.innerHTML = `
-                <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.25rem;">${step.title}</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">${step.content}</p>
-                <div style="display: flex; gap: 1rem; justify-content: center;">
-                    <button class="btn btn-primary" onclick="nextTutorialStep()">
-                        ${currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next'}
-                    </button>
-                    <button class="btn" onclick="skipTutorial()" style="background: var(--bg-elevated); color: var(--text-secondary);">
-                        Skip Tutorial
-                    </button>
-                </div>
-                <div style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
-                    Step ${currentTutorialStep + 1} of ${tutorialSteps.length}
-                </div>
-            `;
-            
-            overlay.appendChild(card);
-            document.body.appendChild(overlay);
-        }
-        
-        function nextTutorialStep() {
-            // Remove highlight from current target
-            const currentStep = tutorialSteps[currentTutorialStep];
-            if (currentStep) {
-                const target = document.querySelector(currentStep.target);
-                if (target) {
-                    target.style.position = '';
-                    target.style.zIndex = '';
-                    target.style.transform = '';
-                    target.style.transition = '';
-                }
-                // Remove highlight overlay
-                const highlight = document.getElementById('tutorialHighlight');
-                if (highlight) highlight.remove();
-            }
-            
-            currentTutorialStep++;
-            if (currentTutorialStep >= tutorialSteps.length) {
-                finishTutorial();
-            } else {
-                showTutorialStep();
-            }
-        }
-        
-        function skipTutorial() {
-            finishTutorial();
-        }
-        
-        function finishTutorial() {
-            // Remove tutorial overlay
-            const overlay = document.getElementById('tutorialOverlay');
-            if (overlay) overlay.remove();
-            
-            // Remove any remaining highlights
-            tutorialSteps.forEach(step => {
-                const target = document.querySelector(step.target);
-                if (target) {
-                    target.style.position = '';
-                    target.style.zIndex = '';
-                    target.style.transform = '';
-                    target.style.transition = '';
-                }
-            });
-            
-            // Remove highlight overlay
-            const highlight = document.getElementById('tutorialHighlight');
-            if (highlight) highlight.remove();
-            
-            // Mark tutorial as seen
-            localStorage.setItem('hasSeenTutorial', 'true');
-            showNotification('Tutorial completed! Welcome to Stake Analytics!', 'success');
-        }
-        
+
         // Show login prompt modal
         function showLoginPrompt() {
             const loginModal = document.createElement('div');
@@ -2292,8 +2080,7 @@
         
         // Make debug function available globally
         window.debugDataState = debugDataState;
-        window.nextTutorialStep = nextTutorialStep;
-        window.skipTutorial = skipTutorial;
+
         
         // Mobile menu functions
         function toggleMobileMenu() {
@@ -2542,8 +2329,7 @@
                         updateFilters();
                         updateBookmakerSelects();
                         
-                        // Check if tutorial should be shown
-                        checkTutorial();
+
                     } else {
                         // User is signed out - show login prompt
                         localStorage.removeItem('currentUser');
